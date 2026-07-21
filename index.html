@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chokepoint — Critical Minerals &amp; Supply Risk Monitor</title>
+<meta name="description" content="Interactive map of critical mineral supply risk: who controls production, undeveloped reserves not yet on the market, shipping chokepoints, and a timeline of supply disruptions. Data verified against USGS Mineral Commodity Summaries 2026.">
+<meta property="og:title" content="Chokepoint — Critical Minerals &amp; Supply Risk Monitor">
+<meta property="og:description" content="Who controls the world's critical minerals — and what's sitting in the ground, not yet on the market. Concentration risk, chokepoints, and a supply-disruption timeline.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Chokepoint — Critical Minerals &amp; Supply Risk Monitor">
+<meta name="twitter:description" content="Who controls the world's critical minerals — and what's sitting in the ground, not yet on the market.">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
+<script>
+  // Fallback: if the primary CDN was blocked (ad blocker / firewall), try a second source.
+  if (typeof L === 'undefined') {
+    document.write('<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>');
+  }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0e14; --panel:#0d1520; --panel2:#101a28; --line:rgba(120,150,180,.12);
+  --ink:#dbe4ee; --ink-dim:#8ea0b3; --ink-faint:#5a6b7d;
+  --brand:#e8a15c; --brand-dim:rgba(232,161,92,.15);
+  --sev:#f0554a; --high:#f0a13c; --mod:#e8c94a; --low:#4fc98a;
+  --link:#6fb7e8; --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);font-family:var(--sans);color:var(--ink)}
+#map{position:absolute;inset:0;z-index:1}
+@supports(height:100dvh){body{height:100dvh}}
+.leaflet-tile-pane{filter:saturate(.25) brightness(.55) contrast(1.05)}
+.leaflet-container{background:var(--bg)}
+.leaflet-control-zoom a{background:var(--panel)!important;color:var(--brand)!important;border-color:var(--line)!important}
+.leaflet-control-layers{background:var(--panel)!important;border:1px solid var(--line)!important;color:var(--ink)!important;border-radius:8px!important}
+.leaflet-control-layers label{color:var(--ink)!important;font-family:var(--sans);font-size:12px}
+.leaflet-popup-content-wrapper{background:var(--panel)!important;border:1px solid var(--line)!important;border-radius:8px!important;color:var(--ink)!important;box-shadow:0 8px 30px rgba(0,0,0,.5)!important}
+.leaflet-popup-tip{background:var(--panel)!important}
+.leaflet-popup-content{font-family:var(--sans);font-size:12px;line-height:1.4;margin:10px 12px}
+
+#sp{position:fixed;top:0;left:0;width:min(380px,92vw);height:100vh;height:100dvh;background:linear-gradient(180deg,var(--panel),var(--panel2));z-index:1000;border-right:1px solid var(--line);display:flex;flex-direction:column;transition:transform .3s ease}
+#sp.hide{transform:translateX(-110%)}
+#sp .scroll{overflow-y:auto;flex:1}
+#sp .scroll::-webkit-scrollbar{width:4px}
+#sp .scroll::-webkit-scrollbar-thumb{background:rgba(232,161,92,.25);border-radius:2px}
+
+.hdr{padding:16px 16px 12px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:19px;font-weight:700;letter-spacing:.5px;color:var(--brand)}
+.brand span{color:var(--ink-faint)}
+.tag{font-size:11px;color:var(--ink-dim);margin-top:2px;font-family:var(--sans)}
+.disclaimer{margin-top:10px;padding:7px 9px;background:rgba(240,161,60,.08);border:1px solid rgba(240,161,60,.25);border-radius:6px;font-size:10.5px;line-height:1.45;color:#e8c99a}
+
+.sbox{padding:10px 16px;border-bottom:1px solid var(--line)}
+.sbox input{width:100%;padding:8px 10px;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:6px;color:var(--ink);font-size:12.5px;outline:none;font-family:var(--sans)}
+.sbox input:focus{border-color:var(--brand)}
+.sbox input::placeholder{color:var(--ink-faint)}
+
+.chips{display:flex;flex-wrap:wrap;gap:5px;padding:0 16px 10px;border-bottom:1px solid var(--line)}
+.chip{padding:4px 9px;border-radius:20px;font-size:10.5px;font-family:var(--mono);cursor:pointer;border:1px solid var(--line);color:var(--ink-dim);background:rgba(255,255,255,.02)}
+.chip:hover{border-color:var(--brand)}
+.chip.on{background:var(--brand-dim);border-color:var(--brand);color:var(--brand)}
+
+.modebar{display:flex;gap:6px;padding:10px 16px;border-bottom:1px solid var(--line)}
+.modebtn{flex:1;padding:7px 6px;text-align:center;border-radius:6px;font-size:10.5px;font-family:var(--mono);font-weight:600;letter-spacing:.4px;cursor:pointer;border:1px solid var(--line);color:var(--ink-dim);background:rgba(255,255,255,.02)}
+.modebtn.on{background:rgba(111,183,232,.12);border-color:var(--link);color:var(--link)}
+
+.sectiontitle{font-size:10px;font-weight:700;color:var(--ink-faint);text-transform:uppercase;letter-spacing:1.2px;font-family:var(--mono);padding:12px 16px 6px}
+
+.mrow{display:flex;align-items:center;gap:9px;padding:8px 16px;cursor:pointer;border-left:2px solid transparent}
+.mrow:hover{background:rgba(255,255,255,.03)}
+.mrow.active{background:rgba(232,161,92,.08);border-left-color:var(--brand)}
+.dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.mname{font-size:12.5px;color:var(--ink);font-weight:500}
+.mmeta{font-size:10px;color:var(--ink-faint);font-family:var(--mono)}
+.mright{margin-left:auto;text-align:right}
+.mpct{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ink)}
+.mbadge{font-size:8.5px;font-family:var(--mono);color:var(--ink-faint)}
+.nonusgs{opacity:.55}
+.nonusgs .mname::after{content:" *";color:var(--ink-faint)}
+
+/* detail panel */
+#dp{display:none;padding:14px 16px 20px;border-top:1px solid var(--line);background:rgba(0,0,0,.15)}
+#dp.active{display:block}
+.dp-h{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.dp-name{font-size:16px;font-weight:700;color:var(--ink);font-family:var(--sans)}
+.dp-cat{font-size:10.5px;color:var(--ink-dim);font-family:var(--mono);margin-top:2px}
+.dp-close{width:20px;height:20px;border-radius:5px;background:rgba(240,85,74,.1);border:1px solid rgba(240,85,74,.25);color:var(--sev);cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center}
+.badges{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+.badge{padding:3px 8px;border-radius:4px;font-size:9.5px;font-weight:700;font-family:var(--mono);letter-spacing:.4px;text-transform:uppercase}
+.b-sev{background:rgba(240,85,74,.12);color:var(--sev);border:1px solid rgba(240,85,74,.3)}
+.b-high{background:rgba(240,161,60,.12);color:var(--high);border:1px solid rgba(240,161,60,.3)}
+.b-mod{background:rgba(232,201,74,.12);color:var(--mod);border:1px solid rgba(232,201,74,.3)}
+.b-low{background:rgba(79,201,138,.12);color:var(--low);border:1px solid rgba(79,201,138,.3)}
+.b-usgs{background:rgba(111,183,232,.12);color:var(--link);border:1px solid rgba(111,183,232,.3)}
+.b-non{background:rgba(255,255,255,.05);color:var(--ink-faint);border:1px solid var(--line)}
+.dp-uses{font-size:12px;color:var(--ink-dim);line-height:1.5;margin-bottom:12px}
+
+.gauge-label{font-size:10px;font-family:var(--mono);color:var(--ink-faint);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.gauge{height:6px;border-radius:3px;background:rgba(255,255,255,.06);overflow:hidden;margin-bottom:2px}
+.gauge-fill{height:100%;border-radius:3px}
+.gauge-note{font-size:10px;color:var(--ink-faint);font-family:var(--mono);margin-bottom:12px}
+
+.bar-row{margin-bottom:7px}
+.bar-top{display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:3px}
+.bar-c{color:var(--ink)}
+.bar-v{font-family:var(--mono);color:var(--ink-dim)}
+.bar-track{height:5px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;background:var(--brand)}
+
+.chk-tags{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0}
+.chk-tag{font-size:10px;font-family:var(--mono);padding:3px 7px;border-radius:4px;background:rgba(111,183,232,.08);color:var(--link);border:1px solid rgba(111,183,232,.2)}
+
+.dp-src{font-size:10.5px;color:var(--ink-faint);line-height:1.5;margin:10px 0;padding:8px 9px;background:rgba(255,255,255,.02);border-left:2px solid var(--line);border-radius:0 4px 4px 0}
+.dp-src b{color:var(--ink-dim)}
+
+.actionrow{display:flex;gap:6px;margin-top:10px}
+.actbtn{flex:1;padding:8px 6px;text-align:center;border-radius:6px;font-size:10.5px;font-family:var(--mono);font-weight:600;cursor:pointer;border:1px solid var(--line);color:var(--ink-dim);background:rgba(255,255,255,.02)}
+.actbtn:hover{border-color:var(--brand);color:var(--brand)}
+.actbtn.copied{border-color:var(--low);color:var(--low)}
+
+#tb{position:fixed;top:10px;left:10px;z-index:1200;width:44px;height:44px;border-radius:9px;background:var(--panel);border:1px solid var(--brand);color:var(--brand);cursor:pointer;display:none;align-items:center;justify-content:center;font-size:19px;box-shadow:0 4px 16px rgba(0,0,0,.5)}
+#tb.open{left:auto;right:10px;position:absolute}
+.collapse-btn{position:absolute;top:14px;right:-13px;width:26px;height:26px;border-radius:50%;background:var(--panel);border:1px solid var(--line);color:var(--brand);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;z-index:10}
+
+.pp-t{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--ink);margin-bottom:2px}
+.pp-s{font-size:10.5px;color:var(--ink-dim);margin-bottom:5px}
+.pp-r{display:flex;justify-content:space-between;font-size:11px;padding:2px 0}
+.pp-l{color:var(--ink-faint)}
+.pp-v{color:var(--ink);font-weight:600;font-family:var(--mono)}
+
+#tk{position:fixed;bottom:0;left:0;right:0;height:calc(26px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);background:var(--panel);border-top:1px solid var(--line);z-index:1000;display:flex;align-items:center;overflow:hidden}
+.tks{display:flex;gap:32px;animation:tm 90s linear infinite;white-space:nowrap;padding-left:20px}
+.tki{font-family:var(--mono);font-size:11px;color:var(--ink-dim);display:flex;align-items:center;gap:6px}
+.tkd{width:5px;height:5px;border-radius:50%}
+@keyframes tm{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+@media (max-width:768px){
+  .modebtn{padding:10px 6px;font-size:11px}
+  .mrow{padding:11px 16px}
+  .chip{padding:6px 11px;font-size:11px}
+  .actbtn{padding:11px 6px}
+  .collapse-btn{right:8px;top:10px}
+  .leaflet-popup-content{max-width:78vw!important}
+  #tb{width:42px;height:42px;font-size:18px}
+}
+*{-webkit-tap-highlight-color:rgba(232,161,92,.15)}
+.chk-icon-label{font-family:var(--mono);font-size:9px;color:#c9d6e2;background:rgba(10,14,20,.85);padding:1px 4px;border-radius:3px;white-space:nowrap}
+</style>
+</head>
+<body>
+<div id="map"></div>
+
+<div id="sp">
+  <div class="hdr">
+    <div class="brand">CHOKEPOINT<span>_</span></div>
+    <div class="tag">Critical Minerals &amp; Supply Risk Monitor</div>
+    <div class="disclaimer">Verification pass completed Jul 2026 against USGS MCS 2026 / OFR 2026 tables (Feb 2026, 2025 data). Green badge = table-verified (18 of 27); "(partial)" = key figures verified, splits approximate; gray = spot-checked only (chromium, uranium, met coal, oil, gas, gold). Prototype — re-verify before publication.</div>
+    <button class="collapse-btn" onclick="document.getElementById('sp').classList.add('hide');var t=document.getElementById('tb');t.style.display='flex';t.textContent='\u2630';">&#8249;</button>
+  </div>
+
+  <div class="modebar" id="viewbar">
+    <div class="modebtn on" id="view-minerals" onclick="setView('minerals')">MINERALS</div>
+    <div class="modebtn" id="view-countries" onclick="setView('countries')">COUNTRIES</div>
+    <div class="modebtn" id="view-timeline" onclick="setView('timeline')">TIMELINE</div>
+    <div class="modebtn" id="view-us" onclick="setView('us')">US GAPS</div>
+  </div>
+
+  <div class="modebar" id="modebar2">
+    <div class="modebtn on" id="mode-journo" onclick="setMode('journo')">JOURNALIST</div>
+    <div class="modebtn" id="mode-scr" onclick="setMode('scr')">SUPPLY RISK</div>
+  </div>
+
+  <div class="sbox"><input type="text" id="si" placeholder="Search mineral, country, or event..."></div>
+
+  <div class="chips" id="catchips"></div>
+
+  <div class="chips" style="border-top:1px solid var(--line);padding-top:8px">
+    <div class="chip on" id="layer-chk" onclick="toggleLayer('chk')">&#9670; Chokepoints</div>
+    <div class="chip" id="layer-ports" onclick="toggleLayer('ports')">&#9679; Global Ports</div>
+  </div>
+
+  <div class="scroll">
+    <div class="sectiontitle" id="listtitle">All Tracked Commodities</div>
+    <div id="mlist"></div>
+    <div id="dp"></div>
+    <div style="height:20px"></div>
+  </div>
+</div>
+
+<button id="tb">&#9776;</button>
+<div id="tk"><div class="tks" id="tkc"></div></div>
+
+<script>
+// ---------- DATA ----------
+var CHK = {
+  hormuz:{n:"Strait of Hormuz",lat:26.5,lng:56.3,note:"~20-27% of global oil/LNG normally transits here. STATUS AS OF JUL 2026: effectively disrupted since the US-Israel-Iran war began Feb 28, 2026 and Iran declared the strait 'closed' on Mar 2 — the IEA called it the largest oil supply disruption in market history. A fragile US-Iran ceasefire/MOU is in place but transit volumes remain roughly a third of pre-war levels, war-risk insurance is elevated, and Iran continues asserting de facto control over passage. Not resolved — an active, ongoing risk, not a historical one."},
+  malacca:{n:"Strait of Malacca",lat:2.8,lng:101.4,note:"Primary sea lane linking East Asian processing/manufacturing to the rest of the world — higher traffic value than Hormuz. China has discussed keeping it open as a shared interest even amid regional tensions, precisely because Beijing depends on it too."},
+  taiwan:{n:"Taiwan Strait",lat:24.5,lng:119.5,note:"Highest-traffic chokepoint globally (~87,000 annual transits), carrying ~$1.3T of Chinese trade and $755B of Japan/S.Korea/Philippines trade, next door to TSMC's fabs (~90% of advanced chips). IMPORTANT DISTINCTION vs Hormuz: this is elevated TENSION, not active disruption \u2014 commercial shipping continues to flow normally despite PLA activity and gray-zone pressure through 2026. Analysts view a blockade as unlikely near-term; it's tracked here because the tail risk is enormous (Chatham House estimates a blockade could cut global GDP ~5%, larger than the Hormuz crisis), not because transit is currently impaired."},
+
+  suez:{n:"Suez Canal",lat:30.5,lng:32.3,note:"Shortest sea link between Asia/Middle East and Europe. Bypass = Cape of Good Hope, +2wks. Traffic already reduced by ongoing Red Sea/Bab-el-Mandeb risk; further strained as more Hormuz-origin cargo reroutes."},
+  panama:{n:"Panama Canal",lat:9.1,lng:-79.7,note:"Atlantic-Pacific shortcut; drought has periodically cut daily transits."},
+  bab:{n:"Bab-el-Mandeb",lat:12.6,lng:43.4,note:"Red Sea chokepoint feeding into Suez; repeatedly disrupted by regional conflict since 2023, and the IRGC has floated pushing Houthi allies to block it further amid the 2026 Iran war."},
+  cape:{n:"Cape of Good Hope",lat:-34.4,lng:18.5,note:"Forced reroute point when Suez/Red Sea is unsafe — adds transit time and cost. Traffic has risen sharply as carriers avoid both the Red Sea and, more recently, Hormuz-adjacent routing risk."},
+  gibraltar:{n:"Strait of Gibraltar",lat:35.9,lng:-5.6,note:"Gateway between the Atlantic and Mediterranean — most Suez-bound and Suez-origin traffic to/from Europe and the Americas passes through here. Narrow (13km at its tightest) and a NATO-adjacent chokepoint; Brookings has flagged it alongside Malacca and the Danish Straits as a waterway where toll-style leverage (as Iran has asserted at Hormuz) could in principle be replicated."},
+  sunda:{n:"Sunda Strait",lat:-5.9,lng:105.9,note:"Between Java and Sumatra \u2014 the primary alternative route when Malacca is congested or disrupted, along with the deeper Lombok Strait further east. Shallower and narrower than Malacca with strong currents, so it can't absorb the largest vessels, but it's the reason a Malacca closure degrades rather than severs East Asian trade. All three Indonesian straits sit in one country's waters \u2014 a quiet concentration of routing power."},
+  kiel:{n:"Kiel Canal",lat:54.3,lng:9.7,note:"World's busiest artificial waterway by vessel count — links the North Sea to the Baltic, letting ships skip the long, weather-exposed route around Denmark (the Skagerrak/Danish Straits). Heavily used for regional energy and bulk trade with Northern/Eastern Europe; a structural (lock capacity, depth) rather than geopolitical chokepoint under normal conditions, though Baltic shipping has drawn added security attention since 2022."}
+};
+
+function P(c,p,lat,lng){return {c:c,p:p,lat:lat,lng:lng};}
+function R(c,lat,lng,note){return {c:c,lat:lat,lng:lng,note:note};}
+
+var MINERALS = [
+{id:"ree",n:"Rare Earth Elements (NdPr/Dy/Tb)",cat:"magnet",usgs:true,verified:"MCS 2026 / IEA",usRel:80,usShare:12,advShare:78,advNote:"China 69% mining + 94% magnet manufacture; Myanmar 9%",domNote:"Mountain Pass mines concentrate but US imports of separated Chinese REE jumped 169% in 2025. MP Materials magnet plant ramping; Project Vault reserve launched Feb 2026.",uses:"Permanent magnets in EV motors, wind turbines, precision-guided weapons, drives.",
+ prod:[P("China",69,35,105),P("USA (Mountain Pass, concentrate only)",12,36,-115.5),P("Myanmar",9,21,96),P("Australia",6,-25,133)],
+ proc:[P("China",94,35,105)],
+ reserve:[R("Greenland (Kvanefjeld)",61,-45.6,"One of the world's largest undeveloped rare earth + uranium deposits — but a 2021 Greenlandic law banning uranium mining above a low threshold has effectively blocked development, since Kvanefjeld's ore carries uranium alongside the REE. No high-profile Greenland critical-mineral project has yet reached commercial production despite over a decade of exploration interest.")],
+ src:"USGS MCS 2026 (mining ~68-69%, per USGS OFR 2023 data) / IEA (94% magnet manufacturing)",note:"The export-control saga is now a rolling negotiation: April 2025 controls on Sm/Gd/Tb/Dy/Lu/Sc/Y remain in force; October 2025 controls on five more elements were suspended for one year in November under the Trump-Xi deal — leverage retained, not surrendered. US concentrate output rose 10% in 2025 (51kt), yet US imports of separated Chinese REE compounds jumped 169% — mining more while depending more. Malaysia has also banned raw REE ore exports to force domestic processing.",
+ chk:["taiwan","malacca"]},
+{id:"lithium",n:"Lithium",cat:"battery",usgs:true,verified:"MCS 2026",usRel:50,usShare:1,advShare:21,advNote:"China 21% of mining but ~65% of refining to battery grade",domNote:"Thacker Pass (NV) and other projects ramping; US refining capacity growing but small vs China.",uses:"Rechargeable batteries — EVs, grid storage, electronics.",
+ prod:[P("Australia",32,-25,122),P("China",21,35,105),P("Chile",19,-24,-69),P("Zimbabwe",10,-19,29.8),P("Argentina",8,-24,-66),P("Brazil",4,-14.2,-51.9),P("Mali",3,17.5,-4)],
+ proc:[P("China",65,35,105)],
+ reserve:[R("Bolivia (Salar de Uyuni)",-20.1,-67.5,"Holds one of the largest identified lithium resources on Earth (~23Mt per USGS 2026, second only to Argentina's 28Mt) yet contributes well under 1% of global production. The blocker is chemistry and politics, not scarcity: high magnesium content fouls conventional evaporation extraction, and state control plus political instability have slowed foreign investment. New direct-lithium-extraction (DLE) plants with Chinese and Russian partners are the first real attempt to close that gap, targeting meaningful output by ~2027-28.")],
+ src:"USGS MCS 2026 (Feb 2026, 2025 production data — table verified)",note:"World production jumped 31% in 2025 to ~290kt. The map has shifted fast: China is now the #2 miner (not just refiner), and Zimbabwe has surged to #4 on the back of Chinese-financed spodumene mines — a country absent from most people's lithium mental model. Refining into battery-grade material remains China-dominated (~65%).",
+ chk:["taiwan","malacca","panama"]},
+{id:"cobalt",n:"Cobalt",cat:"battery",usgs:true,verified:"MCS 2026",usRel:76,usShare:1,advShare:76,advNote:"DRC 74% of mining (high-risk jurisdiction); China 68% of refining",domNote:"Idaho Cobalt Belt restart attempts price-dependent; US stockpile purchases spiked after DRC export quotas.",uses:"Battery cathodes, superalloys for jet engines and gas turbines.",
+ prod:[P("DR Congo",74,-4,25),P("Indonesia",14,-2,118),P("Russia",2,60,90),P("Madagascar",1,-19,47)],
+ proc:[P("China",68,35,105)],
+ reserve:[R("USA (Idaho Cobalt Belt)",45,-114.5,"A known domestic cobalt resource (Idaho Cobalt Operations and nearby prospects) with periodic restart attempts tied to price cycles — small relative to DRC, but the clearest allied-jurisdiction alternative reserve in North America, illustrating how thin the non-DRC option set really is. USGS also estimates ~5 billion tons of cobalt in seafloor polymetallic nodules — vast but commercially and legally unresolved.")],
+ src:"USGS MCS 2026 (Feb 2026, 2025 production data — table verified)",note:"DRC at 73-74% remains the highest single-country concentration of any major battery mineral — and it's now actively using that leverage: Kinshasa banned cobalt exports in Feb 2025 to fight low prices, then replaced the ban with export quotas (Oct 2025) including a national strategic reserve carve-out. Indonesia has meanwhile doubled its share to 14% as nickel-laterite byproduct output ramps.",
+ chk:["cape","suez"]},
+{id:"nickel",n:"Nickel (class 1 / battery grade)",cat:"battery",usgs:true,verified:"MCS 2026",uses:"Stainless steel, EV battery cathodes, superalloys.",
+ prod:[P("Indonesia",67,-2,118),P("Philippines",7,12,122),P("Russia",5,60,90),P("Canada (Sudbury, ON)",4,46.5,-81.0),P("New Caledonia",4,-21.5,165.5),P("China",3,35,105)],
+ reserve:[R("Australia (mines in care-and-maintenance)",-28,121,"Australia holds some of the world's largest nickel reserves, but production collapsed 54% in 2025 as multiple mines were mothballed — priced out by cheap Indonesian laterite supply, not depleted. A different flavor of 'reserve not in market': fully built capacity idled by price, that could restart if the market turns. New Caledonia (a French territory with world-class reserves) went through a similar squeeze plus 2024 civil unrest, though its output recovered somewhat in 2025.")],
+ src:"USGS MCS 2026 (Feb 2026, 2025 production data — table verified)",note:"Indonesia's grip keeps tightening: 67% of world mine supply in 2025 (up from ~51% just a couple years ago), a higher single-country share than OPEC ever held in oil. Its 2020 ore export ban forced smelting investment onshore and is the template other resource states now cite.",
+ chk:["taiwan","malacca"]},
+{id:"graphite",n:"Graphite (natural, battery-grade)",cat:"battery",usgs:true,verified:"MCS 2026",usRel:100,usShare:0,advShare:82,advNote:"China 82% of mining, ~90% of anode processing",domNote:"Zero US natural graphite mining. 93.5%+ antidumping duties on Chinese anode material imposed 2025; synthetic-graphite and Alaska projects early-stage.",uses:"Battery anodes (largest single material by mass in a lithium-ion cell), lubricants, refractories.",
+ prod:[P("China",82,35,105),P("Madagascar",4,-19,47),P("Tanzania",4,-6.3,34.8),P("Brazil",4,-14.2,-51.9),P("Mozambique",3,-18,35)],
+ proc:[P("China",90,35,105)],
+ src:"USGS MCS 2026 (Feb 2026, 2025 production data — table verified)",note:"China's mining share is 82% (higher than commonly quoted older figures) and its processing grip on anode material is near-total. The diversification story is East Africa: Tanzania more than doubled output in 2025 to become joint-#2, and Mozambique's Balama mine restarted mid-2025 after suspension. The US imposed steep antidumping duties (93.5%+) on Chinese anode material in 2025.",
+ chk:["taiwan","malacca","cape"]},
+{id:"copper",n:"Copper",cat:"industrial",usgs:true,verified:"MCS 2026 (partial)",uses:"Wiring, grid infrastructure, EV motors, data centers — the base metal of electrification.",
+ prod:[P("Chile",23,-35.7,-71.5),P("DR Congo",14,-4,25),P("Peru",11,-9.2,-75),P("China",8,35,105)],
+ reserve:[R("Panama (Cobre Panamá)",9,-80.6,"One of the largest copper mines opened globally since 2010 (3.1 billion tonnes of proven/probable reserves) — but shut down since late 2023 after Panama's Supreme Court ruled its operating contract unconstitutional following mass protests. As of mid-2026 the government has signaled interest in reopening it, but it remains offline: a fully built, world-scale reserve sitting idle for political reasons, not geological ones.")],
+ src:"USGS MCS 2026 / INN (2025 data)",note:"The big shift of the 2020s: DR Congo has risen to the #2 mining spot, overtaking Peru — meaning the world's two most electrification-critical metals (copper and cobalt) now share the same DRC concentration risk. China still dominates smelting/refining capacity.",
+ chk:["panama","cape"]},
+{id:"platinum",n:"Platinum",cat:"pgm",usgs:true,verified:"MCS 2026",usRel:89,usShare:2,advShare:83,advNote:"South Africa 71% + Russia 12%",domNote:"Stillwater (MT) is the only US PGM source and is partly on care-and-maintenance.",uses:"Catalytic converters, hydrogen fuel cells, chemical catalysts, jewelry.",
+ prod:[P("South Africa",71,-30.6,22.9),P("Russia",12,60,90),P("Zimbabwe",11,-19,30),P("Canada",3,56,-106)],
+ reserve:[R("USA (Stillwater Complex, Montana)",45.4,-109.9,"The only significant primary PGM (platinum+palladium) resource in the US, and one of very few outside South Africa/Russia/Zimbabwe — small relative to the Bushveld Complex, but the clearest allied-jurisdiction supply option if South African output were disrupted.")],
+ src:"USGS MCS 2026 (Feb 2026, 2025 production — table verified; 120t of 170t world total)",note:"South Africa's 71% held steady in 2025 even as its output fell 9% (power cuts, deep-mine costs, weak palladium prices) — the whole market shrank with it. Platinum prices rose 25% in 2025 partly on substitution back into auto catalysts. US net import reliance for platinum hit 89%.",
+ chk:["cape"]},
+{id:"palladium",n:"Palladium",cat:"pgm",usgs:true,verified:"MCS 2026",usRel:57,usShare:3,advShare:81,advNote:"Russia 44% + South Africa 37%",domNote:"US import reliance jumped from 34% to 57% in one year as Montana output fell 40%.",uses:"Catalytic converters, electronics, dental/medical alloys.",
+ prod:[P("Russia",44,60,90),P("South Africa",37,-30.6,22.9),P("Canada",8,56,-106),P("Zimbabwe",8,-19,30)],
+ src:"USGS MCS 2026 (Feb 2026, 2025 production — table verified; 84t of 190t world total from Russia)",note:"Russia + South Africa control 81% — a two-country chokepoint, both under pressure (sanctions uncertainty in Russia, power/rail strain in South Africa; both saw output fall in 2025). US mine production dropped 40% with the Montana operation partly mothballed, pushing US palladium import reliance from 34% to 57% in a single year. Palladium is mined alongside platinum (see Platinum's Stillwater entry for the main non-Russia/SA reserve option).",
+ chk:["cape"]},
+{id:"gallium",n:"Gallium",cat:"semi",usgs:true,verified:"MCS 2026",usRel:100,usShare:0,advShare:99,advNote:"China ~99% of primary production; export ban to US Dec 2024, lifted 1yr Nov 2025",domNote:"No primary US production since 1987. DOE-funded byproduct-recovery R&D at alumina/zinc smelters underway.",uses:"Semiconductors, LEDs, 5G RF chips, solar cells.",
+ prod:[P("China",99,35,105),P("Japan / Russia (remainder)",1,45,100)],
+ src:"USGS MCS 2026 (Feb 2026 — 99% share stated directly by USGS)",note:"The single most concentrated commodity on this board: China produces 99% of primary low-purity gallium. The control timeline: export licensing Aug 2023 \u2192 total ban on exports to the US Dec 2024 \u2192 ban lifted for one year in Nov 2025 under the Trump-Xi deal. US gallium metal imports more than doubled in 2025 at ~30% higher prices. No US primary production since 1987; the real reserve lever is byproduct-recovery at Western alumina/zinc smelters (new projects announced in Australia, Canada, Greece, Kazakhstan, Korea; US DOE funding R&D to restart domestic recovery).",
+ chk:["taiwan","malacca"]},
+{id:"germanium",n:"Germanium",cat:"semi",usgs:true,verified:"USGS OFR 2026",usRel:50,usShare:0,advShare:77,advNote:"China 77% of refined output; US-bound export ban Dec 2024",domNote:"Some US recovery from zinc residues (TN) and recycling; well below demand.",uses:"Fiber optics, infrared optics, semiconductors, night-vision systems.",
+ prod:[P("China",77,35,105),P("Rest of world",23,20,20)],
+ src:"USGS Open-File Report 2026 (China refined-germanium share, 2023 data)",note:"China refines 77% of the world's germanium (higher than the ~60-68% figures still commonly cited). Export-controlled alongside gallium since August 2023, with a ban on US-bound exports added in Dec 2024. Like gallium, it's a byproduct of zinc/coal processing rather than a directly mined ore — no distinct undeveloped-deposit reserve is compiled here.",
+ chk:["taiwan","malacca"]},
+{id:"silicon",n:"Silicon (metallurgical / polysilicon)",cat:"semi",usgs:true,verified:"USGS OFR 2026",usRel:45,usShare:5,advShare:85,advNote:"China 85% of silicon metal; Xinjiang polysilicon compliance risk",domNote:"US smelters operating below capacity; polysilicon capacity (WA, TN) expanding for solar/chips.",uses:"Semiconductor wafers, solar panels, aluminum alloying.",
+ prod:[P("China",85,35,105),P("Rest of world",15,20,20)],
+ src:"USGS Open-File Report 2026 (China silicon-metal share, 2023 data); on the US critical list since 2025",note:"China produces 85% of the world's silicon metal (higher than commonly cited). Polysilicon refining for solar and chips is heavily concentrated in Xinjiang, which carries added compliance/forced-labor sourcing risk for buyers. The constraint is refining capacity, not raw quartz — silica is geologically abundant, so no undeveloped-reserve entry applies the way it does for ore-based minerals.",
+ chk:["taiwan","malacca"]},
+{id:"titanium",n:"Titanium (sponge metal)",cat:"alloy",usgs:true,verified:"MCS 2026",usRel:100,usShare:0,advShare:77,advNote:"China 70% + Russia 7% of sponge; Japan supplies ~73% of US imports",domNote:"US produced ZERO sponge in 2025 — last plant closed 2024; idled plants in NV & UT restartable but not restarted.",uses:"Aerospace structures/engines, military armor, medical implants, white pigment (TiO2).",
+ prod:[P("China",70,35,105),P("Japan",14,36,138),P("Russia",7,60,90),P("Kazakhstan",4,48,68),P("Saudi Arabia",3,24,45)],
+ reserve:[
+   R("USA (idled sponge plants, NV & UT)",39.5,-116,"The US produced ZERO titanium sponge in 2025 — its last operating plant closed in 2024, and two larger facilities (Henderson NV, ~12.6kt; Rowley UT, ~10.9kt) sit idle since 2020 and 2016 respectively. 100% import-reliant for an aerospace-critical metal, with Japan supplying ~73% of imports. Built capacity idled by market conditions — restartable, but not restarted."),
+   R("Sierra Leone / Mozambique (heavy mineral sands)",7.6,-12.3,"African coastal heavy-mineral-sand deposits (ilmenite/rutile) hold significant undeveloped titanium feedstock; Mozambique is already the #2 producer of mineral concentrates (the upstream feedstock commodity, tracked separately by USGS from sponge metal). Development gated by infrastructure and financing rather than geology.")
+ ],
+ src:"USGS MCS 2026 (Feb 2026, 2025 sponge production — table verified; 260kt of 370kt world total)",note:"China produces 70% of the world's titanium sponge and its lead is growing as Japan (14%) and Russia (7%) slipped in 2025. The starkest fact: the US now produces none at all — a fully import-dependent aerospace input, with Russia's VSMPO-AVISMA still embedded in Western aerospace supply chains as a sanctions flashpoint.",
+ chk:["taiwan","malacca"]},
+{id:"tungsten",n:"Tungsten",cat:"alloy",usgs:true,verified:"MCS 2026",usRel:80,usShare:0,advShare:81,advNote:"China 79% + Russia 2%; China export controls Feb 2025",domNote:"No US mine production since 2015. Allied supply growing: Kazakhstan Boguty (2025), Korea Sangdong restart (Dec 2025).",uses:"Cutting tools, mining/drilling equipment, ammunition, jet engine components.",
+ prod:[P("China",79,35,105),P("Vietnam",4,16,108),P("Kazakhstan",3,48,68),P("Russia",2,60,90),P("Bolivia",2,-17,-65),P("Portugal",1,40.1,-7.5)],
+ reserve:[
+   R("Portugal (Borralha & Vale das Gatas)",41.6,-7.9,"Two Portuguese deposits suspended since the late 1980s. Panasqueira (the only currently active mine) holds just 79% of Portugal's *active* reserves (~5.4kt), but the country's broader known resource base — including these suspended sites — runs to ~123kt, over 20x larger. Restart depends on economic feasibility studies, not geology."),
+   R("South Korea (Sangdong)",37.2,128.5,"A historically top-tier deposit, closed in 1994 on low prices, restarted commercial mining in Dec 2025 under Almonty Industries. USGS confirms a Korean project 'nearing production' — the clearest live example of dormant reserve becoming active market supply, alongside Kazakhstan's Boguty deposit which started producing in 2025 and immediately became a top-3 non-China source.")
+ ],
+ src:"USGS MCS 2026 (Feb 2026, 2025 production data — table verified; 67kt of 85kt world total)",note:"China's share is 79% of 2025 mine supply — and Beijing added tungsten to its export-control list in Feb 2025 (alongside the existing gallium/germanium/antimony controls), after the US raised tariffs on Chinese tungsten products to 50%. Rotterdam concentrate prices roughly doubled through 2025. The supply response is visible: Kazakhstan's new Boguty mine and Korea's Sangdong restart are dormant reserves converting to market supply in real time.",
+ chk:["taiwan","malacca"]},
+{id:"vanadium",n:"Vanadium",cat:"alloy",usgs:true,verified:"USGS OFR 2026 (partial)",usRel:96,usShare:0,advShare:83,advNote:"China 66% + Russia 17%",domNote:"No US mine production; recovery from petroleum residues and imported slag only.",uses:"Steel alloying (rebar strength), grid-scale flow batteries, aerospace alloys.",
+ prod:[P("China",66,35,105),P("Russia",17,60,90),P("South Africa",8,-30.6,22.9)],
+ src:"USGS Open-File Report 2026 (China mined share 65%+, 2023 data); country splits approximate",note:"China + Russia together exceed 80% \u2014 two of the least easy countries to reroute supply away from. Vanadium is mostly recovered as a byproduct of steel slag and titanomagnetite ore, so distinct undeveloped-deposit reserves are not well documented publicly \u2014 flagged as a research gap.",
+ chk:["taiwan","malacca","cape"]},
+{id:"chromium",n:"Chromium (chromite)",cat:"alloy",usgs:true,usRel:75,usShare:0,advShare:60,advNote:"South Africa 43% + Kazakhstan 17%; no domestic mining",domNote:"US has no chromite mining; recycling of stainless scrap covers part of demand.",uses:"Stainless steel, superalloys, chrome plating.",
+ prod:[P("South Africa",43,-30.6,22.9),P("Kazakhstan",17,48,68),P("Turkey",10,39,35)],
+ src:"USGS MCS 2025 (spot-checked only \u2014 not yet table-verified against MCS 2026)",note:"No viable stainless-steel production without chromium; South Africa's Bushveld Complex is the anchor supply. No large undeveloped reserve distinct from current producers is compiled in this dataset yet.",
+ chk:["cape"]},
+{id:"manganese",n:"Manganese",cat:"alloy",usgs:true,verified:"MCS 2026 (partial)",usRel:100,usShare:0,advShare:36,advNote:"South Africa 36% (infrastructure-strained); no adversary dominance but zero domestic option",domNote:"No US manganese mining since the 1970s — 100% import-reliant for a metal in all steel.",uses:"Steelmaking (virtually all steel requires it), EV battery cathodes.",
+ prod:[P("South Africa",36,-30.6,22.9),P("Gabon",22,-0.8,11.6),P("Australia",17,-25,133)],
+ reserve:[R("Pacific seabed polymetallic nodules",10,-140,"Vast manganese (plus nickel, cobalt, copper) resources sit in deep-sea nodules across the Clarion-Clipperton Zone. Technically enormous, but commercial-scale deep-sea mining remains legally and environmentally contested — the least 'shovel-ready' reserve on this list, included because it's the most-discussed wildcard for future battery-metal supply.")],
+ src:"USGS MCS 2025 (spot-checked); Gabon policy per MCS 2026 coverage",note:"Reasonably diversified vs. other alloy metals, but two live squeeze points: South Africa's port/rail bottlenecks (Transnet) repeatedly throttle exports regardless of reserves, and Gabon (#2 producer) plans to ban raw manganese ore exports by 2029 to force domestic processing — the Indonesia-nickel playbook arriving in Africa.",
+ chk:["cape"]},
+{id:"antimony",n:"Antimony",cat:"industrial",usgs:true,verified:"MCS 2026",usRel:85,usShare:0,advShare:85,advNote:"China 36% + Russia 29% + Tajikistan 20%; China banned US-bound exports Dec 2024",domNote:"First US mining in years restarted at Stibnite Hill, MT (late 2025); Stibnite ID broke ground Oct 2025 with $80M Dept of War funding.",uses:"Flame retardants, lead-acid batteries, ammunition primers, semiconductors.",
+ prod:[P("China",36,35,105),P("Russia",29,60,90),P("Tajikistan",20,38,71),P("Bolivia",5,-17,-65),P("Myanmar",4,21,96)],
+ reserve:[R("USA (Stibnite, Idaho + Stibnite Hill, Montana)",45,-115,"The reserve-to-market conversion is happening right now: mining restarted at Stibnite Hill (Montana) in late 2025 — the first US antimony mining in years — and the larger Stibnite Gold Project (Idaho) broke ground in Oct 2025 with $80M in conditional US Department of War funding. Both directly triggered by China's export weaponization.")],
+ src:"USGS MCS 2026 (Feb 2026, 2025 production — table verified; world total 110kt)",note:"The commonly-cited 'China dominates antimony' framing is outdated on the mining side: China is down to 36%, with Russia (29%) and Tajikistan (20%) close behind — 85% between the three, none of them easy to reroute around. China's leverage now runs through processing and trade policy: export restrictions in Aug 2024, then a full ban on antimony exports to the US in Dec 2024. Prices more than doubled to ~$25/lb in 2025, peaking at $27.50 by June.",
+ chk:["taiwan","malacca"]},
+{id:"tin",n:"Tin",cat:"industrial",usgs:true,verified:"MCS 2026",usRel:77,usShare:0,advShare:37,advNote:"China 24% + DRC 9% + Myanmar 4%; diversified overall",domNote:"No US mining, no smelting since 1989; DPA-funded Virginia smelter expected online late 2026.",uses:"Solder for all electronics manufacturing, tinplate, chemicals.",
+ prod:[P("China",24,35,105),P("Indonesia",21,-2,118),P("Peru",11,-9.2,-75),P("Brazil",10,-14.2,-51.9),P("DR Congo",9,-4,25),P("Bolivia",5,-17,-65),P("Myanmar",4,21,96)],
+ src:"USGS MCS 2026 (Feb 2026, 2025 production \u2014 table verified; 290kt world total)",note:"The most geographically diversified critical mineral on this board \u2014 no producer above a quarter of supply. The live story is Myanmar: output fell 40% in one year (20kt to 12kt) amid the Wa State conflict, dropping it from a top-3 source to 4%. The US mines none and has smelted none since 1989; a Virginia smelting facility (Defense Production Act funded, Rwandan feedstock) is expected online late 2026 \u2014 a rare case of US midstream capacity actually being rebuilt.",
+ chk:["taiwan","malacca"]},
+{id:"uranium",n:"Uranium",cat:"nuclear",usgs:true,usRel:95,usShare:1,advShare:55,advNote:"Kazakhstan 43% (Russia-linked routes) + Russia ~5%; enrichment exposure larger",domNote:"US conversion/enrichment restart underway after 2024 ban on Russian enriched uranium (waivers through 2027).",uses:"Nuclear fuel for power generation; medical isotopes.",
+ prod:[P("Kazakhstan",43,48,68),P("Canada",15,56,-106),P("Namibia",11,-22.6,17.1)],
+ reserve:[R("Australia (Olympic Dam)",-30.4,136.9,"Holds the single largest known uranium deposit on Earth, but it's mined mainly as a byproduct of copper/gold extraction — uranium output is gated by copper economics, not uranium demand, so the deposit runs far below its geological potential. Also holds substantial undeveloped rare earth content.")],
+ src:"World Nuclear Association (spot-checked; Kazakhstan ~43% well-corroborated). Added to US critical list 2025.",note:"Kazakhstan's output is majority state-linked (Kazatomprom); Niger coup (2023) also disrupted a secondary Western supply route.",
+ chk:["suez","hormuz"]},
+{id:"potash",n:"Potash",cat:"fertilizer",usgs:true,verified:"MCS 2026 (partial)",usRel:90,usShare:1,advShare:35,advNote:"Russia 18% + Belarus 17% of world supply; Canada (79% of US imports) is the safe anchor",domNote:"Michigan mine got a $1.26B DOE conditional loan (Jan 2025) — first major domestic buildout in decades.",uses:"Fertilizer \u2014 a core input for global food production.",
+ prod:[P("Canada",31,56,-106),P("Russia",18,60,90),P("Belarus",17,53.7,27.9)],
+ reserve:[R("USA (Michigan, Osceola County)",44,-85.3,"A new US potash mine received a conditional $1.26B Department of Energy loan commitment in Jan 2025 \u2014 planned initial capacity of 800kt/year of muriate of potash. Small next to Saskatchewan, but notable as deliberate supply-security investment: the US imports 79% of its potash from Canada and 12% from sanctioned Russia.")],
+ src:"USGS MCS 2026 (import shares and capacity verified; country production splits approximate). Added to US critical list 2025.",note:"Belarus/Russia sanctions after 2022 forced a major global re-routing of potash trade flows toward Canada \u2014 which now supplies 79% of US imports. World capacity (66.1Mt K2O in 2025) comfortably exceeds consumption (~41.6Mt), so the risk here is trade-route and sanctions risk, not scarcity.",
+ chk:["suez","gibraltar"]},
+{id:"phosphate",n:"Phosphate Rock",cat:"fertilizer",usgs:true,verified:"MCS 2026 (partial)",uses:"Fertilizer — no substitute at scale for phosphorus in agriculture.",
+ prod:[P("China",45,35,105),P("Morocco",16,31.8,-7.1),P("USA",8,39.8,-98.6),P("Russia",6,60,90)],
+ reserve:[R("Morocco / Western Sahara",29,-11,"Morocco (including the disputed Western Sahara territory) holds roughly 70% of global phosphate reserves despite producing only ~16% of current supply — by far the largest reserve-to-production gap of any tracked mineral. Expansion is a matter of investment pace, not resource limits (Moroccan capacity expansions are underway through 2028 per USGS), though Western Sahara sourcing carries its own political/legal complications for buyers.")],
+ src:"USGS MCS 2026 (Feb 2026 — producer order verified: China, Morocco, US, Russia; shares approximate)",note:"Also a new demand driver worth watching: LFP (iron-phosphate) batteries now hold half the global EV battery market, pulling phosphate into the battery supply chain — and over 90% of LFP batteries are made in China. US phosphate output is slowly declining as Florida reserves deplete.",
+ chk:["suez","gibraltar"]},
+{id:"silver",n:"Silver",cat:"industrial",usgs:true,verified:"MCS 2026 (partial)",uses:"Solar cell circuitry, electronics, batteries, medical antimicrobials.",
+ prod:[P("Mexico",24,23.6,-102.5),P("China",13,35,105),P("Peru",13,-9.2,-75)],
+ src:"USGS MCS 2026 (world total 26,000t and Mexico's lead verified; country splits approximate)",note:"A supply-deficit story: 2025 consumption (~35,700t) ran far above mine supply (~26,000t), with the gap filled by recycling and stock draws. Prices surged 34% to average $38/oz, peaking at $53.60 in November. Solar demand pulled silver onto the US critical list in 2025. Mostly a byproduct of lead/zinc/copper mining, so no distinct undeveloped-deposit story is compiled here.",
+ chk:["panama"]},
+{id:"metcoal",n:"Metallurgical Coal",cat:"energy",usgs:true,uses:"Coking coal for steelmaking — distinct from thermal coal used in power generation.",
+ prod:[P("Australia",50,-25,133),P("USA",13,39.8,-98.6),P("Russia",10,60,90)],
+ src:"USGS / industry data (spot-checked only). Added to US critical list 2025.",note:"Australia dominates the seaborne export market specifically, which is what matters for steelmakers without domestic coking coal. No large disclosed undeveloped reserve outside current producers is compiled in this dataset yet.",
+ chk:["taiwan","malacca"]},
+{id:"oil",n:"Crude Oil",cat:"energy",usgs:false,uses:"Transport fuel, petrochemical feedstock. Not on the USGS critical minerals list — tracked here for context, since energy chokepoints overlap heavily with mineral trade routes.",
+ prod:[P("USA",16,39.8,-98.6),P("Saudi Arabia",11,24,45),P("Russia",11,60,90),P("Canada (Alberta oil sands)",9,56.7,-111.4),P("Iraq",6,33,44),P("China",5,35,105),P("UAE",4,24,54),P("Iran (war-disrupted)",4,32.4,53.7),P("Brazil (pre-salt offshore)",4,-24,-42),P("Kuwait",3,29.3,47.7),P("Nigeria",2,9,8),P("Guyana (fastest-growing)",1,7,-58.5)],
+ reserve:[R("Venezuela (Orinoco Belt)",8,-64,"Holds the largest proven crude oil reserves of any country on Earth, yet production has collapsed to a fraction of its historical peak due to U.S. sanctions, PDVSA underinvestment, and infrastructure decay \u2014 the starkest reserve-vs-market gap of any commodity in this dataset, driven entirely by non-geological factors."),
+   R("Australia (Taroom Trough, QLD)",-26,150,"Australia's most significant oil development prospect in ~50 years: Shell pilot wells producing ~200 bbl/day, resource estimates in the hundreds of millions of barrels, potentially covering up to a quarter of domestic fuel needs if developed. Honest framing: early-stage, unconventional, and most coverage comes from investor-promotion sites \u2014 not yet proven reserves. Context matters: Australia holds just 1.8B barrels proven (0.1% of world), imports most of its fuel, and ~50% of its diesel transits Hormuz \u2014 the 2026 crisis is precisely what's driving interest in developing it. Note the viral 'Coober Pedy / 233 billion barrel' claims circulating online are a debunked 2013 oil-in-place estimate, not a discovery.")],
+ src:"EIA / OPEC (context layer, not a USGS commodity; spot-checked)",note:"Spare capacity sits almost entirely with OPEC+ (chiefly Saudi Arabia and UAE), giving it outsized swing-price influence \u2014 heavily tested by the 2026 Iran war, which cut Iranian exports and closed Hormuz (Iraqi, Kuwaiti and much Saudi/UAE cargo also transits it). Two under-watched stories: Nigeria chronically produces below its OPEC quota due to pipeline theft, vandalism and underinvestment \u2014 active supply running below installed capacity; and Guyana is the fastest-growing new producer on Earth, from zero in 2019 to a top-20 producer, proof that new provinces can still emerge quickly offshore.",
+ chk:["hormuz","bab","suez"]},
+{id:"natgas",n:"Natural Gas",cat:"energy",usgs:false,uses:"Power generation, heating, LNG exports, fertilizer/ammonia feedstock.",
+ prod:[P("USA",25,39.8,-98.6),P("Russia",17,60,90),P("Iran (war-disrupted)",6,32.4,53.7),P("China",6,35,105),P("Canada (Alberta & BC)",5,54,-115),P("Qatar",4,25.3,51.2),P("Australia",4,-25,133),P("Norway",3,62,7)],
+ reserve:[R("Canada — Quebec (Utica Shale)",46.8,-71.2,"A real, geologically confirmed shale gas resource in southern Quebec's St. Lawrence Lowlands — but under a de facto moratorium since 2011 and, since 2022, permanently banned by provincial legislation (the first jurisdiction in the world to do so). This sits right next to two *active* Canadian basins — Alberta's Duvernay and BC's Montney/Horn River, both online and exporting — making Canada a clean single-country example of the reserve-vs-market-supply split: geology present in three provinces, policy allows development in two.")],
+ src:"EIA / Natural Resources Canada (context layer, not a USGS commodity; spot-checked)",note:"Pipeline gas cannot easily reroute like LNG can \u2014 Europe's post-2022 scramble illustrates the difference. The seaborne market runs through three big LNG exporters \u2014 the US, Qatar and Australia \u2014 and Qatar's entire export volume transits Hormuz, making it the gas-side casualty of the 2026 crisis. Quebec imports nearly all its gas despite sitting on a known domestic resource.",
+ chk:["hormuz","malacca"]},
+{id:"iron",n:"Iron Ore",cat:"industrial",usgs:false,verified:"MCS 2026 (partial)",uses:"Steelmaking feedstock — the base input for nearly all heavy industry and construction.",
+ prod:[P("Australia",36,-25,133),P("Brazil",17,-14.2,-51.9),P("China",14,35,105),P("India",9,21,78.5),P("Guinea (Simandou, ramping)",1,9.5,-9)],
+ src:"USGS MCS 2026 (US figures verified; world splits approximate). Not on the US critical list.",note:"Excluded from the official critical list because Australia/Brazil supply is considered low-risk — included here since it matters to trading/shipping audiences. US output fell 16% in 2025 (Minnesota mine idlings; restart expected 2026) and the US is just 1.4% of world output. Guinea's Simandou deposit (3.3Bt, the world's largest untapped high-grade reserve) is the clearest live reserve-to-market story on this board: first shipments left Dec 2025/Jan 2026, ramping toward a planned 60-120Mt/year.",
+ chk:["taiwan","malacca","cape"]},
+{id:"gold",n:"Gold",cat:"other",usgs:false,uses:"Reserve asset, electronics plating, jewelry.",
+ prod:[P("China",10,35,105),P("Russia",9,60,90),P("Australia",9,-25,133)],
+ src:"USGS (not a critical mineral — reference only)",note:"Not classified as a critical mineral by USGS — supply is diversified and gold isn't an industrial input at meaningful scale. Included only as a reference point, not a supply-risk commodity.",
+ chk:[]}
+];
+
+var CATS = [
+  {id:"all",n:"All"},{id:"magnet",n:"Magnets/REE"},{id:"battery",n:"Battery"},{id:"pgm",n:"PGM"},
+  {id:"semi",n:"Semiconductor"},{id:"alloy",n:"Steel Alloy"},{id:"fertilizer",n:"Fertilizer"},
+  {id:"nuclear",n:"Nuclear"},{id:"industrial",n:"Industrial"},{id:"energy",n:"Energy"},{id:"other",n:"Other"}
+];
+
+// ---------- COUNTRY STABILITY (illustrative tiering only — not a licensed political-risk index) ----------
+var STAB = {
+ "China":{t:"Stable / Assertive",lvl:"mod"},"DR Congo":{t:"Elevated Risk",lvl:"high"},
+ "Indonesia":{t:"Moderate Risk",lvl:"mod"},"Russia":{t:"Elevated Risk (sanctioned)",lvl:"high"},
+ "South Africa":{t:"Moderate Risk (infra strain)",lvl:"mod"},"Australia":{t:"Stable",lvl:"low"},
+ "Chile":{t:"Stable",lvl:"low"},"Peru":{t:"Moderate Risk (political turnover)",lvl:"mod"},
+ "Kazakhstan":{t:"Moderate Risk",lvl:"mod"},"Canada":{t:"Stable",lvl:"low"},
+ "Belarus":{t:"Elevated Risk (sanctioned)",lvl:"high"},"Morocco":{t:"Stable",lvl:"low"},
+ "Mexico":{t:"Moderate Risk",lvl:"mod"},"USA":{t:"Stable",lvl:"low"},
+ "Myanmar":{t:"Severe Risk (conflict)",lvl:"sev"},"Philippines":{t:"Moderate Risk",lvl:"mod"},
+ "Gabon":{t:"Moderate Risk",lvl:"mod"},"Zimbabwe":{t:"Elevated Risk",lvl:"high"},
+ "Vietnam":{t:"Stable",lvl:"low"},"Tajikistan":{t:"Elevated Risk",lvl:"high"},
+ "Namibia":{t:"Stable",lvl:"low"},"Madagascar":{t:"Moderate Risk",lvl:"mod"},
+ "Mozambique":{t:"Elevated Risk (insurgency)",lvl:"high"},"Turkey":{t:"Moderate Risk",lvl:"mod"},
+ "Japan":{t:"Stable",lvl:"low"},"Brazil":{t:"Moderate Risk",lvl:"mod"},
+ "Saudi Arabia":{t:"Stable / State-controlled",lvl:"mod"},"Iran":{t:"Severe Risk (sanctioned)",lvl:"sev"}
+};
+function stabOf(country){return STAB[country] || {t:"Not yet assessed",lvl:"mod"};}
+
+// ---------- HISTORICAL INCIDENT TIMELINE (phase 2 — political risk analyst view) ----------
+var INCIDENTS = [
+ {d:"2026-03",t:"IEA orders largest emergency oil release in its history \u2014 426M barrels",tags:["oil"],
+  s:"IEA / market reporting",desc:"With Hormuz disruption cutting ~21% of global petroleum liquids movement, IEA members committed 426 million barrels \u2014 more than double the 2022 Ukraine-crisis release. The US contributed 172M barrels (largest single-country release ever), Japan 80M. Australia, with among the lowest strategic reserves in the IEA and ~50% of its diesel transiting Hormuz, released into its domestic market \u2014 a live illustration of import-dependence risk."},
+ {d:"2026-02",t:"2026 Iran war begins; Strait of Hormuz effectively closed",tags:["oil","natgas","uranium"],
+  s:"Britannica / CSIS / Congress.gov",desc:"US-Israel strikes on Iran (Feb 28) triggered Iranian retaliation across the Gulf; Iran declared Hormuz 'closed' March 2 and attacked transiting vessels. The IEA called it the largest oil supply disruption in market history — Brent briefly exceeded $180/bbl. A fragile ceasefire/MOU is in place as of July 2026, but transit volumes remain roughly a third of pre-war levels and the crisis is unresolved, not historical."},
+ {d:"2026-04",t:"DR Congo announces plan to stockpile critical minerals",tags:["cobalt","copper"],
+  s:"InvestorNews / CMI",desc:"Kinshasa signaled a shift from passive supplier to active market participant — state-directed stockpiling could add a new layer of price management to already-opaque cobalt and copper markets."},
+ {d:"2026-04",t:"Iran conflict disrupts Congo cobalt/copper input chemicals; aluminum hits 4-yr high on Hormuz fears",tags:["cobalt","copper","oil"],
+  s:"InvestorNews / CMI",desc:"Congolese miners cut chemical (reagent) use as Gulf-routed supply chains were disrupted by regional conflict; aluminum prices jumped on fears of a Hormuz blockade — a reminder that mineral processing depends on imported inputs, not just ore access."},
+ {d:"2026-04",t:"US & Australia commit $3.5B to critical minerals and rare earth projects",tags:["ree"],
+  s:"InvestorNews / CMI",desc:"Includes $600M specifically for a rare earths project, part of a broader allied push to fund midstream (processing) capacity outside China, not just mining."},
+ {d:"2026-03",t:"China issues new Provisions on Security of Industrial and Supply Chains",tags:["ree","gallium","germanium"],
+  s:"Andersen Institute",desc:"State Council order that knits together China's mineral, technology and export-control tools into one coordinated legal framework — analysts describe it as converting upstream dominance into a permanent, adaptive leverage system rather than one-off restrictions."},
+ {d:"2026-03",t:"US-Japan sign deep-sea rare earth mining research MOU",tags:["ree"],
+  s:"CSIS",desc:"Agreement to jointly research extraction of rare earth muds off Minamitorishima island — part of a wider 2025-26 buildout of ex-China rare earth supply chains involving Australia, Japan, Brazil and Saudi Arabia."},
+ {d:"2026-02",t:"China tightens dual-use export controls targeting Japan",tags:["ree","germanium"],
+  s:"Andersen Institute / S&P Global",desc:"Beijing prohibited exports to Japanese military end-users and increased scrutiny of third-country transfers, even during a formal pause on the broader October 2025 rare-earth restrictions — showing the licensing system keeps disruptive power even during nominal détente."},
+ {d:"2026-02",t:"US launches Project Vault strategic minerals reserve",tags:["ree","cobalt","lithium"],
+  s:"CSIS / U.S. State Dept",desc:"Independently governed U.S. public-private critical minerals reserve, backed by a $10B EXIM direct loan — the largest single financing in EXIM's history — framed around civilian economic security rather than defense stockpiling alone."},
+ {d:"2026-02",t:"US-EU-Japan sign critical minerals cooperation framework",tags:["ree","cobalt","nickel"],
+  s:"U.S. State Dept",desc:"Signed at the 2026 Critical Minerals Ministerial (54 countries attending); included new bilateral frameworks with Mexico, Morocco, Peru, the UAE and others, plus the launch of the FORGE resource-diplomacy forum."},
+ {d:"2025-04",t:"China restricts rare earth & magnet exports; Ford halts Explorer output",tags:["ree"],
+  s:"CSIS",desc:"Ford shut down a Chicago assembly plant for a week after China's export restrictions choked magnet supply — cited as the clearest real-world case of mineral leverage translating into a factory floor stoppage. China's licensing regime was paused for a year after an October 2025 Trump-Xi deal, but the underlying architecture stayed intact."},
+ {d:"2025-02",t:"DR Congo bans cobalt exports; replaced by quotas in October",tags:["cobalt"],
+  s:"USGS MCS 2026",desc:"Kinshasa banned cobalt exports in February 2025 to fight oversupply and low prices, then replaced the ban in October with export quotas (~96,600t/year for 2026-27, including a 9,600t national strategic reserve carve-out). The world's most concentrated battery-mineral supplier openly managing supply like a one-country OPEC — US imports and stockpiles spiked on the uncertainty."},
+ {d:"2025-02",t:"China adds tungsten to its export-control list",tags:["tungsten"],
+  s:"USGS MCS 2026",desc:"After the US raised tariffs to 50% on Chinese tungsten products (late 2024), China implemented export controls on selected tungsten items in February 2025. Rotterdam concentrate prices roughly doubled over the year — and the supply response was immediate: Kazakhstan's new Boguty mine started up and Korea's Sangdong restarted."},
+ {d:"2024",t:"China restricts antimony exports, then bans all exports to the US (Dec)",tags:["antimony"],
+  s:"USGS MCS 2026",desc:"Export licensing began Aug 2024; in December China banned all antimony exports to the US outright. Prices nearly doubled within months and averaged $25/lb in 2025 (peaking at $27.50 by June) — more than double 2024. The US response: mining restarted in Montana in late 2025, and Idaho's Stibnite project broke ground with $80M in Department of War funding."},
+ {d:"2023-08",t:"China export-controls gallium and germanium",tags:["gallium","germanium"],
+  s:"IEA",desc:"Direct policy response to Western semiconductor equipment export controls — an early, explicit example of mineral supply used as a countermeasure in a tech dispute."},
+ {d:"2023",t:"Niger coup disrupts a Western uranium supply route",tags:["uranium"],
+  s:"WNA / general reporting",desc:"Political transition interrupted a secondary uranium export channel, illustrating how regime change can abruptly reroute nuclear fuel supply chains."},
+ {d:"2022-02",t:"Russia's invasion of Ukraine — nickel price doubles in two weeks",tags:["nickel"],
+  s:"Beyond The Range",desc:"LME nickel price roughly doubled within the first two weeks of the invasion, a textbook example of geopolitical shock translating instantly into commodity volatility."},
+ {d:"2022",t:"Belarus/Russia sanctions reroute global potash trade",tags:["potash"],
+  s:"General reporting",desc:"Sanctions on two of the top three potash exporters forced a rapid, costly re-routing of global fertilizer supply chains toward Canada."},
+ {d:"2021-03",t:"Ever Given grounds in the Suez Canal",tags:["oil","metcoal","iron"],
+  s:"General reporting",desc:"Six-day blockage held up an estimated $9B/day in global trade — a structural (not political) chokepoint failure, distinct from sanctions-driven disruption."},
+ {d:"2020",t:"Indonesia bans raw nickel ore exports",tags:["nickel"],
+  s:"General reporting",desc:"Forced downstream smelting investment onshore, permanently reshaping nickel trade flows and giving Indonesia far more control over the refined-product value chain."}
+];
+function incidentTags(ids){return ids.map(function(id){var m=MINERALS.find(function(x){return x.id===id;});return m?m.n:id;});}
+
+// ---------- RISK ----------
+function riskOf(m){
+  var top = m.prod[0].p;
+  if(top>=50) return {lvl:"sev",label:"Severe",color:"var(--sev)"};
+  if(top>=35) return {lvl:"high",label:"High",color:"var(--high)"};
+  if(top>=20) return {lvl:"mod",label:"Moderate",color:"var(--mod)"};
+  return {lvl:"low",label:"Low",color:"var(--low)"};
+}
+
+// ---------- MAP ----------
+var mapAvailable = (typeof L !== 'undefined');
+if (!mapAvailable) {
+  document.getElementById('map').innerHTML =
+    '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:40px;text-align:center;color:#dbe4ee;font-family:IBM Plex Sans,sans-serif">'+
+    '<div style="max-width:420px"><div style="font-family:IBM Plex Mono,monospace;font-size:14px;color:#f0554a;margin-bottom:10px">MAP LIBRARY BLOCKED</div>'+
+    'The Leaflet mapping library could not load from either CDN (jsdelivr.net or unpkg.com). This is usually an ad blocker, browser extension, or network/firewall rule blocking third-party scripts.<br><br>'+
+    'Try disabling ad-blocking extensions for this page, or opening the file on a different network, then reload. The mineral, country, and timeline data below still works without the map.</div></div>';
+}
+// No-op stubs so the rest of the app runs even when the map can't load.
+var noopLayer = {addTo:function(){return this;},clearLayers:function(){},bindPopup:function(){return this;}};
+var M = mapAvailable ? L.map('map',{center:[20,30],zoom:3,minZoom:2,maxZoom:10,attributionControl:false}) : {flyTo:function(){}};
+var dk = null, usingFallbackTiles = false;
+function addTiles(url, attribution){
+  if (dk) { M.removeLayer(dk); }
+  dk = L.tileLayer(url, {maxZoom:19});
+  dk.addTo(M);
+  var fails = 0;
+  dk.on('tileerror', function(){
+    fails++;
+    if (fails >= 3 && !usingFallbackTiles) {
+      usingFallbackTiles = true;
+      addTiles('https://tile.openstreetmap.org/{z}/{x}/{y}.png');
+    } else if (fails >= 6 && usingFallbackTiles) {
+      var hint = document.getElementById('tilehint');
+      if (!hint) {
+        hint = document.createElement('div');
+        hint.id = 'tilehint';
+        hint.style.cssText = 'position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:2000;background:#101a28;border:1px solid rgba(240,161,60,.4);color:#e8c99a;padding:10px 14px;border-radius:8px;font-family:IBM Plex Sans,sans-serif;font-size:12px;max-width:88vw;line-height:1.45';
+        hint.innerHTML = 'Map tiles are being blocked (Brave Shields / ad blocker). Tap the Brave lion icon and set Shields Down for this site, then reload. <span style="text-decoration:underline;cursor:pointer;color:#6fb7e8" onclick="this.parentNode.remove()">Dismiss</span>';
+        document.body.appendChild(hint);
+      }
+    }
+  });
+}
+if (mapAvailable) addTiles('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png');
+var prodLayer = mapAvailable ? L.layerGroup().addTo(M) : noopLayer;
+var chkLayer = mapAvailable ? L.layerGroup().addTo(M) : noopLayer;
+var portLayer = mapAvailable ? L.layerGroup() : noopLayer;
+
+var CHK_STATUS = {
+  hormuz: 'active',     // active disruption: war ongoing, transits ~1/3 of pre-war levels
+  bab: 'elevated',      // repeatedly attacked since 2023; not fully closed
+  taiwan: 'elevated'    // high tension, gray-zone pressure -- but shipping flows normally
+  // all others: 'normal' (structural chokepoints, no current geopolitical disruption)
+};
+
+if (mapAvailable) Object.keys(CHK).forEach(function(k){
+  var c = CHK[k];
+  var status = CHK_STATUS[k] || 'normal';
+  var col = status==='active' ? '#f0554a' : status==='elevated' ? '#f0a13c' : '#6fb7e8';
+  var bg  = status==='active' ? 'rgba(240,85,74,.18)' : status==='elevated' ? 'rgba(240,161,60,.15)' : 'rgba(111,183,232,.15)';
+  var size = status==='active' ? 14 : 12;
+  var ic = L.divIcon({className:'',html:'<div style="width:'+size+'px;height:'+size+'px;background:'+bg+';border:'+(status==='active'?'2px':'1.5px')+' solid '+col+';border-radius:3px;transform:rotate(45deg)"></div>',iconSize:[size,size],iconAnchor:[size/2,size/2]});
+  var riskTag = status==='active'
+    ? '<div style="font-size:10px;font-family:var(--mono);color:#f0554a;font-weight:700;margin-bottom:3px">&#9888; ACTIVE DISRUPTION</div>'
+    : status==='elevated'
+    ? '<div style="font-size:10px;font-family:var(--mono);color:#f0a13c;font-weight:700;margin-bottom:3px">&#9651; ELEVATED TENSION &mdash; TRAFFIC FLOWING</div>'
+    : '<div style="font-size:10px;font-family:var(--mono);color:#6fb7e8;margin-bottom:3px">Structural chokepoint &mdash; normal operations</div>';
+  L.marker([c.lat,c.lng],{icon:ic}).addTo(chkLayer).bindPopup('<div class="pp-t">'+c.n+'</div>'+riskTag+'<div style="font-size:11px;color:#b9c6d3;max-width:260px">'+c.note+'</div>');
+  var lblStyle = status==='active' ? 'color:#ffb4ac;border:1px solid rgba(240,85,74,.4)' : status==='elevated' ? 'color:#f5cf9b;border:1px solid rgba(240,161,60,.35)' : '';
+  L.marker([c.lat,c.lng],{icon:L.divIcon({className:'',html:'<div class="chk-icon-label" style="'+lblStyle+'">'+c.n+'</div>',iconSize:[0,0],iconAnchor:[-10,0]})}).addTo(chkLayer);
+});
+
+// ---------- GLOBAL PORTS (top container/bulk ports by throughput) ----------
+var PORTS = [
+  {n:"Shanghai",lat:31.4,lng:121.5,note:"World's busiest container port by volume."},
+  {n:"Singapore",lat:1.26,lng:103.8,note:"Top transshipment hub; sits directly on the Malacca Strait approach."},
+  {n:"Ningbo-Zhoushan",lat:29.9,lng:121.9,note:"World's busiest port by cargo tonnage (bulk + container combined)."},
+  {n:"Shenzhen",lat:22.5,lng:114.0,note:"Core South China manufacturing export hub."},
+  {n:"Guangzhou",lat:23.1,lng:113.3,note:"Major Pearl River Delta port."},
+  {n:"Busan",lat:35.1,lng:129.0,note:"Northeast Asia's largest transshipment hub."},
+  {n:"Hong Kong",lat:22.3,lng:114.2,note:"Historic entrepôt; still major transshipment and finance-linked trade hub."},
+  {n:"Kaohsiung",lat:22.6,lng:120.3,note:"Taiwan's largest port — directly exposed to any Taiwan Strait disruption."},
+  {n:"Jebel Ali (Dubai)",lat:25.0,lng:55.1,note:"Middle East's largest port; gateway just outside the Strait of Hormuz."},
+  {n:"Rotterdam",lat:51.95,lng:4.14,note:"Europe's largest port — main entry point for Gulf/Asia energy and mineral cargo into the EU."},
+  {n:"Antwerp-Bruges",lat:51.3,lng:4.3,note:"Europe's #2 port; major chemicals and bulk hub."},
+  {n:"Hamburg",lat:53.5,lng:9.97,note:"Germany's largest port, feeds directly into the Kiel Canal route to the Baltic."},
+  {n:"Los Angeles / Long Beach",lat:33.75,lng:-118.2,note:"Largest container gateway in the Americas."},
+  {n:"New York / New Jersey",lat:40.67,lng:-74.1,note:"Largest East Coast US port complex."},
+  {n:"Santos",lat:-23.96,lng:-46.33,note:"Brazil's largest port — key soy, iron ore and general cargo gateway."},
+  {n:"Colón (Panama)",lat:9.36,lng:-79.9,note:"Atlantic-side gateway to the Panama Canal."}
+];
+if (mapAvailable) PORTS.forEach(function(p){
+  var ic = L.divIcon({className:'',html:'<div style="width:7px;height:7px;background:#e8a15c;border-radius:50%;box-shadow:0 0 0 2px rgba(232,161,92,.2)"></div>',iconSize:[7,7],iconAnchor:[3,3]});
+  L.marker([p.lat,p.lng],{icon:ic}).addTo(portLayer).bindPopup('<div class="pp-t">'+p.n+'</div><div class="pp-s">Major global port</div><div style="font-size:11px;color:#b9c6d3;max-width:220px">'+p.note+'</div>');
+});
+
+
+
+var currentMode = 'journo';
+var currentCat = 'all';
+var currentView = 'minerals';
+var activeMineral = null;
+var activeCountry = null;
+
+function riskColorVar(lvl){return lvl==='sev'?'#f0554a':lvl==='high'?'#f0a13c':lvl==='mod'?'#e8c94a':'#4fc98a';}
+
+// ---------- COUNTRY INDEX ----------
+function buildCountryIndex(){
+  var idx = {};
+  MINERALS.forEach(function(m){
+    m.prod.forEach(function(p){
+      if(p.c==="Rest of world") return;
+      idx[p.c] = idx[p.c] || {entries:[],lat:p.lat,lng:p.lng};
+      idx[p.c].entries.push({mn:m.n,mid:m.id,p:p.p,risk:riskOf(m),proc:false});
+    });
+    if(m.proc) m.proc.forEach(function(p){
+      idx[p.c] = idx[p.c] || {entries:[],lat:p.lat,lng:p.lng};
+      idx[p.c].entries.push({mn:m.n+" — processing",mid:m.id,p:p.p,risk:riskOf(m),proc:true});
+    });
+  });
+  Object.keys(idx).forEach(function(c){
+    idx[c].leverage = idx[c].entries.filter(function(e){return e.risk.lvl==='sev'||e.risk.lvl==='high';}).length;
+    idx[c].entries.sort(function(a,b){return b.p-a.p;});
+  });
+  return idx;
+}
+var COUNTRY_IDX = buildCountryIndex();
+
+function toggleLayer(which){
+  if(!mapAvailable) return;
+  if(which==='chk'){
+    var el = document.getElementById('layer-chk');
+    if(M.hasLayer(chkLayer)){ M.removeLayer(chkLayer); el.classList.remove('on'); }
+    else { chkLayer.addTo(M); el.classList.add('on'); }
+  } else if(which==='ports'){
+    var el2 = document.getElementById('layer-ports');
+    if(M.hasLayer(portLayer)){ M.removeLayer(portLayer); el2.classList.remove('on'); }
+    else { portLayer.addTo(M); el2.classList.add('on'); }
+  }
+}
+
+function setView(v){
+  currentView = v;
+  ['minerals','countries','timeline','us'].forEach(function(x){document.getElementById('view-'+x).classList.toggle('on', x===v);});
+  document.getElementById('modebar2').style.display = (v==='minerals') ? 'flex' : 'none';
+  document.getElementById('catchips').style.display = (v==='minerals') ? 'flex' : 'none';
+  document.getElementById('dp').classList.remove('active');
+  activeMineral = null; activeCountry = null;
+  prodLayer.clearLayers();
+  document.getElementById('si').placeholder = v==='minerals' ? 'Search mineral (e.g. cobalt, gallium)...' : v==='countries' ? 'Search country...' : v==='us' ? 'Search US-dependency minerals...' : 'Search event or mineral...';
+  document.getElementById('si').value = '';
+  if(v==='minerals') renderList('');
+  else if(v==='countries') renderCountries('');
+  else if(v==='us') renderUSGaps('');
+  else renderTimeline('');
+}
+
+function renderCountries(filterText){
+  var host = document.getElementById('mlist');
+  var q=(filterText||'').toLowerCase();
+  var names = Object.keys(COUNTRY_IDX).filter(function(c){return !q || c.toLowerCase().indexOf(q)>-1;});
+  names.sort(function(a,b){return COUNTRY_IDX[b].leverage - COUNTRY_IDX[a].leverage || COUNTRY_IDX[b].entries.length - COUNTRY_IDX[a].entries.length;});
+  document.getElementById('listtitle').textContent = 'Countries by Supply Leverage';
+  host.innerHTML = names.map(function(c){
+    var d = COUNTRY_IDX[c];
+    var st = stabOf(c);
+    var top = d.entries[0];
+    return '<div class="mrow'+(activeCountry===c?' active':'')+'" onclick="selectCountry(\''+c.replace(/'/g,"\\'")+'\')">'+
+      '<div class="dot" style="background:'+riskColorVar(st.lvl)+'"></div>'+
+      '<div><div class="mname">'+c+'</div><div class="mmeta">Leads on '+top.mn.replace(' — processing','')+'</div></div>'+
+      '<div class="mright"><div class="mpct">'+d.leverage+'</div><div class="mbadge">HIGH/SEV items</div></div>'+
+      '</div>';
+  }).join('') || '<div style="padding:16px;font-size:12px;color:var(--ink-faint)">No countries match.</div>';
+}
+
+function selectCountry(name){
+  activeCountry = name;
+  var d = COUNTRY_IDX[name];
+  renderCountries(document.getElementById('si').value);
+  var st = stabOf(name);
+  var bcls = st.lvl==='sev'?'b-sev':st.lvl==='high'?'b-high':st.lvl==='mod'?'b-mod':'b-low';
+  var rows = d.entries.map(function(e){
+    return '<div class="bar-row"><div class="bar-top"><span class="bar-c">'+e.mn+'</span><span class="bar-v">'+e.p+'%</span></div>'+
+      '<div class="bar-track"><div class="bar-fill" style="width:'+e.p+'%;background:'+riskColorVar(e.risk.lvl)+'"></div></div></div>';
+  }).join('');
+  var chkSet = {};
+  d.entries.forEach(function(e){var m=MINERALS.find(function(x){return x.id===e.mid;});(m.chk||[]).forEach(function(k){chkSet[k]=1;});});
+  var chkTags = Object.keys(chkSet).map(function(k){return '<div class="chk-tag">&#9670; '+CHK[k].n+'</div>';}).join('') || '<div class="chk-tag" style="opacity:.5">No major chokepoint exposure</div>';
+  var dp = document.getElementById('dp');
+  dp.classList.add('active');
+  dp.innerHTML =
+    '<div class="dp-h"><div><div class="dp-name">'+name+'</div><div class="dp-cat">Country Dependency Profile</div></div><button class="dp-close" onclick="closeDetail()">&#10005;</button></div>'+
+    '<div class="badges"><span class="badge '+bcls+'">'+st.t+'</span><span class="badge b-non">'+d.leverage+' high/severe commodities</span></div>'+
+    '<div class="dp-uses" style="font-style:italic">Stability tiering is an illustrative placeholder for demo purposes — swap in a licensed index (e.g. Fragile States Index, Verisk Maplecroft) before relying on it.</div>'+
+    '<div class="sectiontitle" style="padding-left:0">Tracked Commodities</div>'+rows+
+    '<div class="sectiontitle" style="padding-left:0">Chokepoint Exposure</div><div class="chk-tags">'+chkTags+'</div>'+
+    '<div class="actionrow"><div class="actbtn" id="actA" onclick="copyCountryBrief(\''+name.replace(/'/g,"\\'")+'\')">Copy Country Brief</div></div>';
+  prodLayer.clearLayers();
+  if(mapAvailable){
+    var circle = L.circleMarker([d.lat,d.lng],{radius:16,color:'#e8a15c',weight:2,fillColor:'#e8a15c',fillOpacity:.25}).addTo(prodLayer);
+    circle.bindPopup('<div class="pp-t">'+name+'</div><div class="pp-s">'+d.entries.length+' tracked commodities</div>');
+    M.flyTo([d.lat,d.lng], 3, {duration:.8});
+  }
+}
+function copyCountryBrief(name){
+  var d = COUNTRY_IDX[name]; var st = stabOf(name);
+  var txt = "COUNTRY DEPENDENCY PROFILE — "+name+"\nStability tier (illustrative): "+st.t+"\n"+
+    d.entries.map(function(e){return e.mn+": "+e.p+"%";}).join('\n')+
+    "\n\nSource: USGS MCS 2025 / IEA — figures indicative, verify before publication.";
+  copyToClip(txt,'actA');
+}
+
+// ---------- TIMELINE ----------
+function renderTimeline(filterText){
+  var host = document.getElementById('mlist');
+  var q=(filterText||'').toLowerCase();
+  document.getElementById('listtitle').textContent = 'Supply Disruption Timeline';
+  var items = INCIDENTS.filter(function(i){
+    return !q || i.t.toLowerCase().indexOf(q)>-1 || incidentTags(i.tags).join(' ').toLowerCase().indexOf(q)>-1;
+  }).sort(function(a,b){return a.d < b.d ? 1 : -1;});
+  document.getElementById('dp').classList.remove('active');
+  host.innerHTML = items.map(function(i){
+    var tagHtml = incidentTags(i.tags).map(function(t){return '<span class="chk-tag" style="margin:2px 4px 0 0;display:inline-block">'+t+'</span>';}).join('');
+    return '<div style="padding:10px 16px;border-bottom:1px solid var(--line)">'+
+      '<div style="font-family:var(--mono);font-size:10.5px;color:var(--brand);margin-bottom:3px">'+i.d+'</div>'+
+      '<div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px">'+i.t+'</div>'+
+      '<div style="font-size:11.5px;color:var(--ink-dim);line-height:1.5;margin-bottom:6px">'+i.desc+'</div>'+
+      '<div style="margin-bottom:4px">'+tagHtml+'</div>'+
+      '<div style="font-size:10px;color:var(--ink-faint);font-family:var(--mono)">Source: '+i.s+'</div>'+
+      '</div>';
+  }).join('') || '<div style="padding:16px;font-size:12px;color:var(--ink-faint)">No events match.</div>';
+}
+
+
+// ---------- US GAPS VIEW ----------
+function renderUSGaps(filterText){
+  var host = document.getElementById('mlist');
+  var q=(filterText||'').toLowerCase();
+  document.getElementById('listtitle').textContent = 'US Supply Security Gaps';
+  var list = MINERALS.filter(function(m){
+    return typeof m.usRel === 'number' && m.usRel >= 50 && (!q || m.n.toLowerCase().indexOf(q)>-1);
+  }).sort(function(a,b){ return b.usRel - a.usRel || b.advShare - a.advShare; });
+  var note = '<div style="padding:8px 16px 10px;font-size:10.5px;color:var(--ink-faint);line-height:1.5;border-bottom:1px solid var(--line)">Net import reliance per USGS Mineral Commodity Summaries 2026. "Rival-controlled" is an approximate US-policy-lens estimate (China + Russia + high-risk jurisdictions) — a framing used in US policy debate, not a neutral market category.</div>';
+  host.innerHTML = note + list.map(function(m){
+    var advCol = m.advShare>=70 ? '#f0554a' : m.advShare>=40 ? '#f0a13c' : '#e8c94a';
+    return '<div class="mrow'+(activeMineral===m.id?' active':'')+'" onclick="selectMineral(\''+m.id+'\')">'+
+      '<div class="dot" style="background:'+advCol+'"></div>'+
+      '<div><div class="mname">'+m.n+'</div><div class="mmeta">US share of world output: '+m.usShare+'%</div></div>'+
+      '<div class="mright"><div class="mpct">'+m.usRel+'%</div><div class="mbadge">IMPORT-RELIANT</div></div>'+
+      '</div>';
+  }).join('') || note + '<div style="padding:16px;font-size:12px;color:var(--ink-faint)">No matches.</div>';
+}
+
+function renderList(filterText){
+  var host = document.getElementById('mlist');
+  var q = (filterText||'').toLowerCase();
+  var list = MINERALS.filter(function(m){
+    var catOk = currentCat==='all' || m.cat===currentCat;
+    var textOk = !q || m.n.toLowerCase().indexOf(q)>-1;
+    var riskOk = currentMode!=='scr' || (riskOf(m).lvl==='sev' || riskOf(m).lvl==='high');
+    return catOk && textOk && riskOk;
+  }).sort(function(a,b){return b.prod[0].p - a.prod[0].p;});
+  document.getElementById('listtitle').textContent = currentMode==='scr' ? 'Single-Point-of-Failure Radar (High/Severe)' : 'All Tracked Commodities';
+  host.innerHTML = list.map(function(m){
+    var r = riskOf(m);
+    return '<div class="mrow'+(!m.usgs?' nonusgs':'')+(activeMineral===m.id?' active':'')+'" onclick="selectMineral(\''+m.id+'\')">'+
+      '<div class="dot" style="background:'+riskColorVar(r.lvl)+'"></div>'+
+      '<div><div class="mname">'+m.n+'</div><div class="mmeta">'+m.prod[0].c+'</div></div>'+
+      '<div class="mright"><div class="mpct">'+m.prod[0].p+'%</div><div class="mbadge">'+r.label+'</div></div>'+
+      '</div>';
+  }).join('') || '<div style="padding:16px;font-size:12px;color:var(--ink-faint)">No commodities match.</div>';
+}
+
+function renderChips(){
+  document.getElementById('catchips').innerHTML = CATS.map(function(c){
+    return '<div class="chip'+(currentCat===c.id?' on':'')+'" onclick="setCat(\''+c.id+'\')">'+c.n+'</div>';
+  }).join('');
+}
+function setCat(id){currentCat=id;renderChips();renderList(document.getElementById('si').value);}
+function setMode(m){
+  currentMode=m;
+  document.getElementById('mode-journo').classList.toggle('on',m==='journo');
+  document.getElementById('mode-scr').classList.toggle('on',m==='scr');
+  renderList(document.getElementById('si').value);
+}
+
+function selectMineral(id){
+  activeMineral = id;
+  var m = MINERALS.find(function(x){return x.id===id;});
+  if(currentView==='us') renderUSGaps(document.getElementById('si').value);
+  else renderList(document.getElementById('si').value);
+  renderDetail(m);
+  drawProducers(m);
+}
+
+function drawProducers(m){
+  prodLayer.clearLayers();
+  if(!mapAvailable) return;
+  var maxP = Math.max.apply(null, m.prod.map(function(p){return p.p;}));
+  m.prod.forEach(function(p){
+    var radius = 6 + (p.p/maxP)*18;
+    var r = riskOf(m);
+    var col = riskColorVar(r.lvl);
+    var circle = L.circleMarker([p.lat,p.lng],{radius:radius,color:col,weight:2,fillColor:col,fillOpacity:.28}).addTo(prodLayer);
+    circle.bindPopup('<div class="pp-t">'+p.c+'</div><div class="pp-s">'+m.n+'</div><div class="pp-r"><span class="pp-l">Share of supply</span><span class="pp-v">'+p.p+'%</span></div>');
+  });
+  if(m.proc){
+    m.proc.forEach(function(p){
+      var ic = L.divIcon({className:'',html:'<div style="width:9px;height:9px;border:1.5px dashed #e8a15c;border-radius:50%"></div>',iconSize:[9,9],iconAnchor:[4,4]});
+      L.marker([p.lat,p.lng],{icon:ic}).addTo(prodLayer).bindPopup('<div class="pp-t">'+p.c+'</div><div class="pp-s">Midstream processing — '+m.n+'</div><div class="pp-r"><span class="pp-l">Processing share</span><span class="pp-v">'+p.p+'%</span></div>');
+    });
+  }
+  if(m.reserve){
+    m.reserve.forEach(function(rv){
+      var circle = L.circleMarker([rv.lat,rv.lng],{radius:11,color:'#6fb7e8',weight:2,dashArray:'3,3',fillColor:'#6fb7e8',fillOpacity:.08}).addTo(prodLayer);
+      circle.bindPopup('<div class="pp-t">'+rv.c+'</div><div class="pp-s">Undeveloped reserve — not yet in market supply</div><div style="font-size:11px;color:#b9c6d3;max-width:220px">'+rv.note+'</div>');
+    });
+  }
+  if(m.prod.length) M.flyTo([m.prod[0].lat, m.prod[0].lng], 3, {duration:.8});
+}
+
+function renderDetail(m){
+  var dp = document.getElementById('dp');
+  dp.classList.add('active');
+  var r = riskOf(m);
+  var bcls = r.lvl==='sev'?'b-sev':r.lvl==='high'?'b-high':r.lvl==='mod'?'b-mod':'b-low';
+  var maxP = Math.max.apply(null, m.prod.map(function(p){return p.p;}));
+
+  var bars = m.prod.map(function(p){
+    return '<div class="bar-row"><div class="bar-top"><span class="bar-c">'+p.c+'</span><span class="bar-v">'+p.p+'%</span></div>'+
+      '<div class="bar-track"><div class="bar-fill" style="width:'+(p.p/maxP*100)+'%"></div></div></div>';
+  }).join('');
+
+  var chkTags = (m.chk||[]).map(function(k){return '<div class="chk-tag">&#9670; '+CHK[k].n+'</div>';}).join('') || '<div class="chk-tag" style="opacity:.5">No major chokepoint exposure</div>';
+
+  var reserveHtml = '<div class="sectiontitle" style="padding-left:0">Undeveloped Reserves (not yet in market supply)</div>';
+  if(m.reserve && m.reserve.length){
+    reserveHtml += m.reserve.map(function(r){
+        return '<div style="margin-bottom:8px;padding:8px 9px;background:rgba(111,183,232,.05);border-left:2px dashed #6fb7e8;border-radius:0 4px 4px 0">'+
+          '<div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:3px">&#9678; '+r.c+'</div>'+
+          '<div style="font-size:11px;color:var(--ink-dim);line-height:1.5">'+r.note+'</div></div>';
+      }).join('');
+  } else {
+    reserveHtml += '<div style="padding:8px 9px;font-size:11px;color:var(--ink-faint);font-style:italic">No large disclosed undeveloped reserve compiled for this mineral yet — often because it\'s recovered as a byproduct of other mining rather than from a distinct ore body. Not the same as saying none exists.</div>';
+  }
+
+  dp.innerHTML =
+    '<div class="dp-h"><div><div class="dp-name">'+m.n+'</div><div class="dp-cat">'+CATS.find(function(c){return c.id===m.cat;}).n+'</div></div><button class="dp-close" onclick="closeDetail()">&#10005;</button></div>'+
+    '<div class="badges"><span class="badge '+bcls+'">'+r.label+' Concentration</span><span class="badge '+(m.usgs?'b-usgs':'b-non')+'">'+(m.usgs?'USGS 2025 Critical List':'Not on USGS List')+'</span>'+
+    (m.verified?'<span class="badge b-low">&#10003; '+m.verified+' verified</span>':'<span class="badge b-non">Spot-checked — verify before citing</span>')+'</div>'+
+    '<div class="dp-uses">'+m.uses+'</div>'+
+    '<div class="gauge-label">Top Producer Share</div>'+
+    '<div class="gauge"><div class="gauge-fill" style="width:'+m.prod[0].p+'%;background:'+riskColorVar(r.lvl)+'"></div></div>'+
+    '<div class="gauge-note">'+m.prod[0].c+' — '+m.prod[0].p+'% of tracked supply</div>'+
+    '<div class="sectiontitle" style="padding-left:0">Producer Breakdown</div>'+bars+
+    reserveHtml+
+    '<div class="sectiontitle" style="padding-left:0">Chokepoint Exposure</div>'+
+    '<div class="chk-tags">'+chkTags+'</div>'+
+    (typeof m.usRel==='number' ? (
+      '<div class="sectiontitle" style="padding-left:0">US Supply Security Gap</div>'+
+      '<div class="gauge-label">US Net Import Reliance</div>'+
+      '<div class="gauge"><div class="gauge-fill" style="width:'+m.usRel+'%;background:'+(m.usRel>=90?'#f0554a':m.usRel>=70?'#f0a13c':'#e8c94a')+'"></div></div>'+
+      '<div class="gauge-note">'+m.usRel+'% imported \u00b7 US produces '+m.usShare+'% of world supply</div>'+
+      '<div class="gauge-label">Rival-Controlled Share (approx.)</div>'+
+      '<div class="gauge"><div class="gauge-fill" style="width:'+m.advShare+'%;background:'+(m.advShare>=70?'#f0554a':m.advShare>=40?'#f0a13c':'#e8c94a')+'"></div></div>'+
+      '<div class="gauge-note">'+m.advNote+'</div>'+
+      '<div class="dp-src" style="border-left-color:rgba(240,161,60,.4)"><b>Domestic status:</b> '+m.domNote+'</div>'
+    ) : '')+
+    '<div class="dp-src"><b>Source:</b> '+m.src+'<br>'+m.note+'</div>'+
+    '<div class="actionrow">'+
+      '<div class="actbtn" id="actA" onclick="copyStatCard(\''+m.id+'\')">Copy Stat Card</div>'+
+      '<div class="actbtn" id="actB" onclick="copyRiskBrief(\''+m.id+'\')">Copy Risk Brief</div>'+
+      (typeof m.usRel==='number' ? '<div class="actbtn" id="actC" onclick="copyUSBrief(\''+m.id+'\')">Copy US Brief</div>' : '')+
+    '</div>';
+  dp.scrollIntoView({behavior:'smooth'});
+}
+function closeDetail(){
+  document.getElementById('dp').classList.remove('active');
+  activeMineral=null; activeCountry=null; prodLayer.clearLayers();
+  var q = document.getElementById('si').value;
+  if(currentView==='minerals') renderList(q);
+  else if(currentView==='countries') renderCountries(q);
+  else if(currentView==='us') renderUSGaps(q);
+}
+
+function copyToClip(text, btnId){
+  var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy');}catch(e){}
+  document.body.removeChild(ta);
+  var btn=document.getElementById(btnId);var orig=btn.textContent;btn.textContent='Copied ✓';btn.classList.add('copied');
+  setTimeout(function(){btn.textContent=orig;btn.classList.remove('copied');},1400);
+}
+
+function copyStatCard(id){
+  var m=MINERALS.find(function(x){return x.id===id;});
+  var r=riskOf(m);
+  var txt = m.n.toUpperCase()+"\n"+
+    m.prod[0].c+" produces roughly "+m.prod[0].p+"% of tracked global supply ("+r.label.toLowerCase()+" concentration).\n"+
+    "Used in: "+m.uses+"\n"+
+    "Source: "+m.src+" (verify current figures before publication)\n"+
+    "— via Chokepoint Monitor";
+  copyToClip(txt,'actA');
+}
+
+function copyUSBrief(id){
+  var m=MINERALS.find(function(x){return x.id===id;});
+  var txt = "US SUPPLY GAP \u2014 "+m.n+"\n"+
+    "The US imports "+m.usRel+"% of its "+m.n.split(" (")[0].toLowerCase()+" and produces just "+m.usShare+"% of world supply. "+
+    "An estimated "+m.advShare+"% of global supply is controlled by strategic rivals or high-risk jurisdictions ("+m.advNote+"). "+
+    "Domestic picture: "+m.domNote+"\n"+
+    "Source: USGS Mineral Commodity Summaries 2026 \u2014 rival-share estimate approximate; verify before publication.";
+  copyToClip(txt,'actC');
+}
+
+function copyRiskBrief(id){
+  var m=MINERALS.find(function(x){return x.id===id;});
+  var r=riskOf(m);
+  var chk=(m.chk||[]).map(function(k){return CHK[k].n;}).join(', ')||'none identified';
+  var reserveTxt = (m.reserve && m.reserve.length) ? "\nUndeveloped reserves (not yet in market supply): "+m.reserve.map(function(rv){return rv.c;}).join(', ') : "";
+  var txt = "SUPPLY RISK BRIEF — "+m.n+"\n"+
+    "Concentration risk: "+r.label+" (top producer "+m.prod[0].c+" at "+m.prod[0].p+"%)\n"+
+    "Producer breakdown: "+m.prod.map(function(p){return p.c+" "+p.p+"%";}).join(', ')+"\n"+
+    (m.proc? "Midstream processing concentration: "+m.proc.map(function(p){return p.c+" "+p.p+"%";}).join(', ')+"\n" : "")+
+    reserveTxt+"\n"+
+    "Chokepoint exposure: "+chk+"\n"+
+    "Note: "+m.note+"\n"+
+    "Source: "+m.src+" — indicative figures, confirm against primary source before decisions.";
+  copyToClip(txt,'actB');
+}
+
+document.getElementById('si').addEventListener('input', function(){
+  if(currentView==='minerals') renderList(this.value);
+  else if(currentView==='countries') renderCountries(this.value);
+  else if(currentView==='us') renderUSGaps(this.value);
+  else renderTimeline(this.value);
+});
+
+// ticker — real, dated events (see Timeline view for sources); updated as of Jul 2026
+var ticks = [
+  {t:"Feb 2026 — US launches Project Vault strategic minerals reserve (CSIS)",c:"#6fb7e8"},
+  {t:"Feb 2026 — US, EU, Japan sign joint critical minerals framework",c:"#6fb7e8"},
+  {t:"IEA: China is leading refiner in 19 of 20 strategic minerals, ~70% avg share",c:"#f0554a"},
+  {t:"IEA: China's rare earth magnet manufacturing share now 94%, up from ~50% in 2005",c:"#f0554a"},
+  {t:"Apr 2025 — China rare earth export curbs forced a week-long Ford plant shutdown",c:"#f0a13c"},
+  {t:"Tungsten: >80% single-country concentration — highest on the board",c:"#f0554a"},
+  {t:"Gallium & Germanium export-controlled by China since Aug 2023",c:"#f0a13c"},
+  {t:"DR Congo: ~74% of mined cobalt supply",c:"#f0554a"},
+  {t:"Platinum: South Africa ~71% of mined supply",c:"#f0554a"},
+  {t:"2022 — Potash trade rerouted after Belarus/Russia sanctions",c:"#e8c94a"},
+  {t:"Strait of Hormuz: ~20% of global oil/LNG transits",c:"#6fb7e8"},
+  {t:"2024 — China export licensing tightened the antimony market",c:"#f0a13c"},
+  {t:"Dataset is illustrative — verify all figures before publication",c:"#8ea0b3"}
+];
+document.getElementById('tkc').innerHTML = ticks.concat(ticks).map(function(i){
+  return '<span class="tki"><span class="tkd" style="background:'+i.c+'"></span>'+i.t+'</span>';
+}).join('');
+
+renderChips();
+renderList('');
+
+// --- Mobile sidebar toggle (single persistent button) ---
+var spEl = document.getElementById('sp');
+var tbEl = document.getElementById('tb');
+function toggleSidebar(){
+  var isHidden = spEl.classList.contains('hide');
+  if (isHidden) {
+    spEl.classList.remove('hide');
+    tbEl.textContent = '\u2715';
+    spEl.appendChild(tbEl); tbEl.classList.add('open');
+  } else {
+    spEl.classList.add('hide');
+    tbEl.textContent = '\u2630';
+    document.body.appendChild(tbEl); tbEl.classList.remove('open');
+  }
+  setTimeout(function(){ if (mapAvailable && M.invalidateSize) M.invalidateSize(); }, 350);
+}
+tbEl.addEventListener('click', toggleSidebar);
+if (window.innerWidth < 768) {
+  spEl.classList.add('hide');
+  tbEl.style.display = 'flex';
+  tbEl.textContent = '\u2630';
+  var cb = document.querySelector('.collapse-btn');
+  if (cb) cb.style.display = 'none';
+} 
+// Leaflet mobile sizing safety: recalc after load and on rotation
+if (mapAvailable) {
+  setTimeout(function(){ M.invalidateSize(); }, 400);
+  window.addEventListener('resize', function(){ M.invalidateSize(); });
+  window.addEventListener('orientationchange', function(){ setTimeout(function(){ M.invalidateSize(); }, 300); });
+}
+</script>
+</body>
+</html>
