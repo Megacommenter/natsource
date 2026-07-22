@@ -148,6 +148,57 @@ body{background:var(--bg);font-family:var(--sans);color:var(--ink)}
   #tb{width:42px;height:42px;font-size:18px}
 }
 *{-webkit-tap-highlight-color:rgba(232,161,92,.15)}
+
+/* ===== MOBILE BOTTOM SHEET ===== */
+@media (max-width:768px){
+  #sp{
+    top:auto; bottom:0; left:0; right:0;
+    width:100%; max-width:100%;
+    height:58vh; height:58dvh;
+    border-right:none; border-top:1px solid rgba(232,161,92,.28);
+    border-radius:16px 16px 0 0;
+    box-shadow:0 -8px 32px rgba(0,0,0,.55);
+    transition:height .28s cubic-bezier(.4,0,.2,1), transform .28s ease;
+    transform:none !important;
+  }
+  #sp.hide{ transform:none !important; height:74px; }
+  #sp.full{ height:92vh; height:92dvh; }
+  #sp .scroll{ -webkit-overflow-scrolling:touch; }
+
+  /* drag handle */
+  #sheetgrip{
+    display:flex; flex-direction:column; align-items:center;
+    padding:8px 0 4px; cursor:grab; flex-shrink:0;
+    touch-action:none;
+  }
+  #sheetgrip .bar{ width:38px; height:4px; border-radius:2px; background:rgba(232,161,92,.5); }
+  #sheetgrip .lbl{
+    font-family:var(--mono); font-size:9.5px; color:var(--ink-faint);
+    letter-spacing:1px; margin-top:5px; text-transform:uppercase;
+  }
+
+  /* compact the header when collapsed */
+  #sp.hide .hdr, #sp.hide .modebar, #sp.hide .sbox,
+  #sp.hide .chips, #sp.hide .scroll{ display:none; }
+
+  .hdr{ padding:10px 16px 10px; }
+  .brand{ font-size:16px; }
+  .tag{ font-size:10px; }
+  .disclaimer{ font-size:9.5px; padding:6px 8px; margin-top:7px; }
+  .collapse-btn{ display:none !important; }
+  #tb{ display:none !important; }
+
+  /* map gets the top portion of the screen */
+  #map{ bottom:58vh; bottom:58dvh; }
+
+  #tk{ display:none; }
+  .modebar{ padding:8px 12px; gap:5px; }
+  .modebtn{ font-size:9.5px; padding:9px 3px; }
+  .sbox{ padding:8px 12px; }
+  .chips{ padding:0 12px 8px; }
+}
+@media (min-width:769px){ #sheetgrip{ display:none; } }
+
 .chk-icon-label{font-family:var(--mono);font-size:9px;color:#c9d6e2;background:rgba(10,14,20,.85);padding:1px 4px;border-radius:3px;white-space:nowrap}
 </style>
 </head>
@@ -155,6 +206,7 @@ body{background:var(--bg);font-family:var(--sans);color:var(--ink)}
 <div id="map"></div>
 
 <div id="sp">
+  <div id="sheetgrip" onclick="cycleSheet()"><div class="bar"></div><div class="lbl" id="griplbl">Tap to expand</div></div>
   <div class="hdr">
     <div class="brand">CHOKEPOINT<span>_</span></div>
     <div class="tag">Critical Minerals &amp; Supply Risk Monitor</div>
@@ -193,6 +245,30 @@ body{background:var(--bg);font-family:var(--sans);color:var(--ink)}
 
 <button id="tb">&#9776;</button>
 <div id="tk"><div class="tks" id="tkc"></div></div>
+
+<div id="intro" style="position:fixed;inset:0;z-index:3000;background:rgba(6,10,16,.82);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px">
+  <div style="max-width:440px;background:linear-gradient(180deg,#0f1826,#0b1420);border:1px solid rgba(232,161,92,.25);border-radius:16px;padding:26px 24px;box-shadow:0 20px 60px rgba(0,0,0,.6)">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:700;color:#e8a15c;letter-spacing:.5px">CHOKEPOINT<span style="color:#5a6b7d">_</span></div>
+    <div style="font-size:13px;color:#8ea0b3;margin-top:4px;margin-bottom:16px">Critical Minerals &amp; Supply Risk Monitor</div>
+    <div style="font-size:13.5px;color:#dbe4ee;line-height:1.6;margin-bottom:18px">
+      An interactive map of who controls the world's critical minerals &mdash; and where that supply is at risk. Click any mineral to see which countries produce it, what's still buried and untapped, and which shipping chokepoints it depends on.
+    </div>
+    <div style="font-size:11px;color:#5a6b7d;text-transform:uppercase;letter-spacing:1px;font-family:'IBM Plex Mono',monospace;margin-bottom:8px">Try starting with</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px">
+      <div onclick="introJump('gallium')" style="cursor:pointer;padding:7px 12px;border-radius:8px;background:rgba(240,85,74,.1);border:1px solid rgba(240,85,74,.3);color:#f0554a;font-size:12px;font-family:'IBM Plex Mono',monospace">Gallium &mdash; 99% one country</div>
+      <div onclick="introJump('ree')" style="cursor:pointer;padding:7px 12px;border-radius:8px;background:rgba(240,161,60,.1);border:1px solid rgba(240,161,60,.3);color:#f0a13c;font-size:12px;font-family:'IBM Plex Mono',monospace">Rare Earths</div>
+      <div onclick="introUS()" style="cursor:pointer;padding:7px 12px;border-radius:8px;background:rgba(111,183,232,.1);border:1px solid rgba(111,183,232,.3);color:#6fb7e8;font-size:12px;font-family:'IBM Plex Mono',monospace">What the US lacks</div>
+    </div>
+    <button onclick="closeIntro()" style="width:100%;padding:12px;border-radius:9px;background:#e8a15c;border:none;color:#0a0e14;font-weight:700;font-size:14px;font-family:'IBM Plex Sans',sans-serif;cursor:pointer">Explore the map &rarr;</button>
+    <div style="font-size:10px;color:#5a6b7d;text-align:center;margin-top:12px;line-height:1.4">Data verified against USGS Mineral Commodity Summaries 2026.<br>A prototype &mdash; verify figures before publication.</div>
+  </div>
+</div>
+<script>
+function closeIntro(){var i=document.getElementById('intro');if(i){i.style.transition='opacity .3s';i.style.opacity='0';setTimeout(function(){i.remove();},300);}}
+function introJump(id){closeIntro();setTimeout(function(){try{if(window.innerWidth<769&&typeof applySheet==='function')applySheet('half');selectMineral(id);}catch(e){}},350);}
+function introUS(){closeIntro();setTimeout(function(){try{if(window.innerWidth<769&&typeof applySheet==='function')applySheet('half');setView('us');}catch(e){}},350);}
+</script>
+
 
 <script>
 // ---------- DATA ----------
@@ -440,11 +516,17 @@ if (!mapAvailable) {
 }
 // No-op stubs so the rest of the app runs even when the map can't load.
 var noopLayer = {addTo:function(){return this;},clearLayers:function(){},bindPopup:function(){return this;}};
-var M = mapAvailable ? L.map('map',{center:[20,30],zoom:3,minZoom:2,maxZoom:10,attributionControl:false}) : {flyTo:function(){}};
+var M = mapAvailable ? L.map('map',{
+  center:[20,30], zoom:3, minZoom:2, maxZoom:10,
+  attributionControl:false,
+  worldCopyJump:true,
+  maxBounds:[[-85,-Infinity],[85,Infinity]],
+  maxBoundsViscosity:1.0
+}) : {flyTo:function(){}};
 var dk = null, usingFallbackTiles = false;
 function addTiles(url, attribution){
   if (dk) { M.removeLayer(dk); }
-  dk = L.tileLayer(url, {maxZoom:19});
+  dk = L.tileLayer(url, {maxZoom:19, bounds:[[-85,-180],[85,180]]});
   dk.addTo(M);
   var fails = 0;
   dk.on('tileerror', function(){
@@ -524,6 +606,16 @@ var currentCat = 'all';
 var currentView = 'minerals';
 var activeMineral = null;
 var activeCountry = null;
+
+
+// category -> emoji-free colored glyph (generated, not copyrighted imagery)
+var CAT_VIS = {
+  magnet:{c:'#e05c9e',g:'\u25C6'}, battery:{c:'#4fc98a',g:'\u25AE'}, pgm:{c:'#c9d6e2',g:'\u25C9'},
+  semi:{c:'#6fb7e8',g:'\u25A3'}, alloy:{c:'#f0a13c',g:'\u25B2'}, fertilizer:{c:'#8fd14f',g:'\u2698'},
+  nuclear:{c:'#e8c94a',g:'\u269B'}, industrial:{c:'#d98a5a',g:'\u2692'}, energy:{c:'#f0554a',g:'\u25C8'},
+  other:{c:'#8ea0b3',g:'\u25CB'}
+};
+function catGlyph(cat){var v=CAT_VIS[cat]||CAT_VIS.other;return '<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;background:'+v.c+'22;color:'+v.c+';font-size:12px;flex-shrink:0;margin-right:2px">'+v.g+'</span>';}
 
 function riskColorVar(lvl){return lvl==='sev'?'#f0554a':lvl==='high'?'#f0a13c':lvl==='mod'?'#e8c94a':'#4fc98a';}
 
@@ -687,6 +779,7 @@ function renderList(filterText){
   host.innerHTML = list.map(function(m){
     var r = riskOf(m);
     return '<div class="mrow'+(!m.usgs?' nonusgs':'')+(activeMineral===m.id?' active':'')+'" onclick="selectMineral(\''+m.id+'\')">'+
+      catGlyph(m.cat)+
       '<div class="dot" style="background:'+riskColorVar(r.lvl)+'"></div>'+
       '<div><div class="mname">'+m.n+'</div><div class="mmeta">'+m.prod[0].c+'</div></div>'+
       '<div class="mright"><div class="mpct">'+m.prod[0].p+'%</div><div class="mbadge">'+r.label+'</div></div>'+
@@ -709,6 +802,7 @@ function setMode(m){
 
 function selectMineral(id){
   activeMineral = id;
+  if(window.innerWidth < 769 && typeof applySheet === 'function' && sheetState === 'full'){ applySheet('half'); }
   var m = MINERALS.find(function(x){return x.id===id;});
   if(currentView==='us') renderUSGaps(document.getElementById('si').value);
   else renderList(document.getElementById('si').value);
@@ -881,34 +975,60 @@ document.getElementById('tkc').innerHTML = ticks.concat(ticks).map(function(i){
 renderChips();
 renderList('');
 
-// --- Mobile sidebar toggle (single persistent button) ---
+// --- Mobile bottom sheet ---
 var spEl = document.getElementById('sp');
 var tbEl = document.getElementById('tb');
-function toggleSidebar(){
-  var isHidden = spEl.classList.contains('hide');
-  if (isHidden) {
-    spEl.classList.remove('hide');
-    tbEl.textContent = '\u2715';
-    spEl.appendChild(tbEl); tbEl.classList.add('open');
-  } else {
-    spEl.classList.add('hide');
-    tbEl.textContent = '\u2630';
-    document.body.appendChild(tbEl); tbEl.classList.remove('open');
+var gripLbl = document.getElementById('griplbl');
+var isMobile = function(){ return window.innerWidth < 769; };
+// states: 'peek' (collapsed), 'half' (default), 'full'
+var sheetState = 'half';
+function applySheet(st){
+  sheetState = st;
+  spEl.classList.remove('hide','full');
+  if(st === 'peek') spEl.classList.add('hide');
+  if(st === 'full') spEl.classList.add('full');
+  if(gripLbl) gripLbl.textContent = st==='peek' ? 'Tap to expand' : st==='half' ? 'Tap for full list' : 'Tap to shrink';
+  var mapEl = document.getElementById('map');
+  if(mapEl && isMobile()){
+    mapEl.style.bottom = st==='peek' ? '74px' : st==='full' ? '8vh' : '58vh';
+  } else if(mapEl){
+    mapEl.style.bottom = '0';
   }
-  setTimeout(function(){ if (mapAvailable && M.invalidateSize) M.invalidateSize(); }, 350);
+  setTimeout(function(){ if(mapAvailable && M.invalidateSize) M.invalidateSize(); }, 320);
 }
-tbEl.addEventListener('click', toggleSidebar);
-if (window.innerWidth < 768) {
-  spEl.classList.add('hide');
-  tbEl.style.display = 'flex';
-  tbEl.textContent = '\u2630';
-  var cb = document.querySelector('.collapse-btn');
-  if (cb) cb.style.display = 'none';
-} 
+function cycleSheet(){
+  if(!isMobile()){
+    // desktop: grip does nothing (collapse arrow handles it)
+    return;
+  }
+  applySheet(sheetState==='peek' ? 'half' : sheetState==='half' ? 'full' : 'peek');
+}
+// drag support
+(function(){
+  var grip = document.getElementById('sheetgrip');
+  if(!grip) return;
+  var startY = null;
+  grip.addEventListener('touchstart', function(e){ startY = e.touches[0].clientY; }, {passive:true});
+  grip.addEventListener('touchend', function(e){
+    if(startY === null) return;
+    var dy = e.changedTouches[0].clientY - startY;
+    if(Math.abs(dy) > 40){
+      if(dy < 0) applySheet(sheetState==='peek' ? 'half' : 'full');       // swipe up
+      else       applySheet(sheetState==='full' ? 'half' : 'peek');       // swipe down
+    }
+    startY = null;
+  }, {passive:true});
+})();
+if(isMobile()){ applySheet('half'); }
 // Leaflet mobile sizing safety: recalc after load and on rotation
 if (mapAvailable) {
   setTimeout(function(){ M.invalidateSize(); }, 400);
-  window.addEventListener('resize', function(){ M.invalidateSize(); });
+  window.addEventListener('resize', function(){
+    var mapEl=document.getElementById('map');
+    if(mapEl && !isMobile()) mapEl.style.bottom='0';
+    else if(mapEl && typeof sheetState!=='undefined') applySheet(sheetState);
+    M.invalidateSize();
+  });
   window.addEventListener('orientationchange', function(){ setTimeout(function(){ M.invalidateSize(); }, 300); });
 }
 </script>
