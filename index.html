@@ -199,6 +199,31 @@ body{background:var(--bg);font-family:var(--sans);color:var(--ink)}
 }
 @media (min-width:769px){ #sheetgrip{ display:none; } }
 
+
+#legend{
+  position:fixed; top:12px; right:12px; z-index:1100;
+  background:rgba(13,21,32,.94); border:1px solid var(--line);
+  border-radius:10px; padding:0; overflow:hidden;
+  font-family:var(--sans); box-shadow:0 6px 24px rgba(0,0,0,.45);
+  max-width:230px;
+}
+#legendhead{
+  display:flex; align-items:center; gap:6px; cursor:pointer;
+  padding:8px 11px; font-family:var(--mono); font-size:10px;
+  letter-spacing:1.2px; color:var(--brand); text-transform:uppercase; font-weight:700;
+}
+#legendbody{ padding:2px 11px 10px; display:none; }
+#legend.open #legendbody{ display:block; }
+.lg-sec{ font-family:var(--mono); font-size:8.5px; color:var(--ink-faint);
+  letter-spacing:1px; text-transform:uppercase; margin:8px 0 4px; }
+.lg-row{ display:flex; align-items:center; gap:8px; margin:4px 0; font-size:10.5px; color:var(--ink-dim); line-height:1.3; }
+.lg-sym{ width:16px; display:flex; justify-content:center; flex-shrink:0; }
+@media (max-width:768px){
+  #legend{ top:8px; right:8px; max-width:190px; }
+  #legendbody{ padding:2px 9px 8px; }
+  .lg-row{ font-size:10px; }
+}
+
 .chk-icon-label{font-family:var(--mono);font-size:9px;color:#c9d6e2;background:rgba(10,14,20,.85);padding:1px 4px;border-radius:3px;white-space:nowrap}
 </style>
 </head>
@@ -244,6 +269,28 @@ body{background:var(--bg);font-family:var(--sans);color:var(--ink)}
 </div>
 
 <button id="tb">&#9776;</button>
+
+<div id="legend">
+  <div id="legendhead" onclick="document.getElementById('legend').classList.toggle('open')">
+    <span>&#9432;</span><span>Legend</span>
+  </div>
+  <div id="legendbody">
+    <div class="lg-sec">Production</div>
+    <div class="lg-row"><span class="lg-sym"><span style="width:13px;height:13px;border-radius:50%;background:rgba(240,85,74,.28);border:2px solid #f0554a;display:inline-block"></span></span><span>Producing country &mdash; size = share of supply</span></div>
+    <div class="lg-row"><span class="lg-sym"><span style="width:10px;height:10px;border-radius:50%;border:1.5px dashed #e8a15c;display:inline-block"></span></span><span>Processing / refining hub</span></div>
+    <div class="lg-row"><span class="lg-sym"><span style="width:12px;height:12px;border-radius:50%;border:2px dashed #6fb7e8;background:rgba(111,183,232,.08);display:inline-block"></span></span><span>Undeveloped reserve &mdash; not on the market</span></div>
+    <div class="lg-sec">Shipping</div>
+    <div class="lg-row"><span class="lg-sym"><span style="width:11px;height:11px;background:rgba(240,85,74,.18);border:2px solid #f0554a;transform:rotate(45deg);display:inline-block"></span></span><span>Chokepoint &mdash; active disruption</span></div>
+    <div class="lg-row"><span class="lg-sym"><span style="width:10px;height:10px;background:rgba(240,161,60,.15);border:1.5px solid #f0a13c;transform:rotate(45deg);display:inline-block"></span></span><span>Chokepoint &mdash; elevated tension</span></div>
+    <div class="lg-row"><span class="lg-sym"><span style="width:10px;height:10px;background:rgba(111,183,232,.15);border:1.5px solid #6fb7e8;transform:rotate(45deg);display:inline-block"></span></span><span>Chokepoint &mdash; normal operations</span></div>
+    <div class="lg-row"><span class="lg-sym"><span style="width:7px;height:7px;border-radius:50%;background:#e8a15c;display:inline-block"></span></span><span>Major port (toggle in sidebar)</span></div>
+    <div class="lg-sec">Risk colour</div>
+    <div class="lg-row"><span class="lg-sym"><span style="width:9px;height:9px;border-radius:50%;background:#f0554a;display:inline-block"></span></span><span>Severe &mdash; top producer &ge;50%</span></div>
+    <div class="lg-row"><span class="lg-sym"><span style="width:9px;height:9px;border-radius:50%;background:#f0a13c;display:inline-block"></span></span><span>High &ge;35% &nbsp;&middot;&nbsp; <span style="color:#e8c94a">Moderate &ge;20%</span></span></div>
+    <div class="lg-row"><span class="lg-sym"><span style="width:9px;height:9px;border-radius:50%;background:#4fc98a;display:inline-block"></span></span><span>Low &mdash; diversified supply</span></div>
+  </div>
+</div>
+
 <div id="tk"><div class="tks" id="tkc"></div></div>
 
 <div id="intro" style="position:fixed;inset:0;z-index:3000;background:rgba(6,10,16,.82);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px">
@@ -521,8 +568,19 @@ var M = mapAvailable ? L.map('map',{
   attributionControl:false,
   worldCopyJump:true,
   maxBounds:[[-85,-Infinity],[85,Infinity]],
-  maxBoundsViscosity:1.0
-}) : {flyTo:function(){}};
+  maxBoundsViscosity:1.0,
+  preferCanvas:true,          // render markers on canvas — much smoother on phones
+  zoomAnimation:true,
+  markerZoomAnimation:false,  // the expensive one on mobile
+  fadeAnimation:false
+}) : {flyTo:function(){}, setView:function(){}};
+
+// Mobile phones struggle with long flyTo tweens; jump instead.
+function goTo(lat, lng, zoom){
+  if(!mapAvailable) return;
+  if(window.innerWidth < 769){ M.setView([lat,lng], zoom, {animate:false}); }
+  else { M.flyTo([lat,lng], zoom, {duration:.7}); }
+}
 var dk = null, usingFallbackTiles = false;
 function addTiles(url, attribution){
   if (dk) { M.removeLayer(dk); }
@@ -714,7 +772,7 @@ function selectCountry(name){
   if(mapAvailable){
     var circle = L.circleMarker([d.lat,d.lng],{radius:16,color:'#e8a15c',weight:2,fillColor:'#e8a15c',fillOpacity:.25}).addTo(prodLayer);
     circle.bindPopup('<div class="pp-t">'+name+'</div><div class="pp-s">'+d.entries.length+' tracked commodities</div>');
-    M.flyTo([d.lat,d.lng], 3, {duration:.8});
+    goTo(d.lat, d.lng, 3);
   }
 }
 function copyCountryBrief(name){
@@ -833,7 +891,7 @@ function drawProducers(m){
       circle.bindPopup('<div class="pp-t">'+rv.c+'</div><div class="pp-s">Undeveloped reserve — not yet in market supply</div><div style="font-size:11px;color:#b9c6d3;max-width:220px">'+rv.note+'</div>');
     });
   }
-  if(m.prod.length) M.flyTo([m.prod[0].lat, m.prod[0].lng], 3, {duration:.8});
+  if(m.prod.length) goTo(m.prod[0].lat, m.prod[0].lng, 3);
 }
 
 function renderDetail(m){
