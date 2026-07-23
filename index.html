@@ -34,7 +34,8 @@ html,body{height:100%;overflow:hidden}
 body{background:var(--bg);font-family:var(--sans);color:var(--ink)}
 #map{position:absolute;inset:0;z-index:1}
 @supports(height:100dvh){body{height:100dvh}}
-.leaflet-tile-pane{filter:saturate(.25) brightness(.55) contrast(1.05)}
+.leaflet-tile-pane{filter:saturate(.4) brightness(.82) contrast(1.02)}
+body.light .leaflet-tile-pane{filter:none}
 .leaflet-container{background:var(--bg)}
 .leaflet-control-zoom a{background:var(--panel)!important;color:var(--brand)!important;border-color:var(--line)!important}
 .leaflet-control-layers{background:var(--panel)!important;border:1px solid var(--line)!important;color:var(--ink)!important;border-radius:8px!important}
@@ -224,6 +225,66 @@ body{background:var(--bg);font-family:var(--sans);color:var(--ink)}
   .lg-row{ font-size:10px; }
 }
 
+
+/* ===== LIGHT THEME ===== */
+body.light{
+  --bg:#eef1f5; --panel:#ffffff; --panel2:#f5f7fa; --line:rgba(28,45,66,.16);
+  --ink:#16212e; --ink-dim:#4d5f72; --ink-faint:#7b8b9c;
+  --brand:#a85f14; --brand-dim:rgba(168,95,20,.12);
+  --sev:#c8342a; --high:#b56f10; --mod:#8f7505; --low:#12855a;
+  --link:#12628f;
+}
+body.light .leaflet-container{background:#dfe5ec}
+body.light #sp{background:linear-gradient(180deg,#ffffff,#f5f7fa);box-shadow:0 0 24px rgba(20,40,60,.10)}
+body.light .leaflet-popup-content-wrapper,
+body.light .leaflet-popup-tip{background:#ffffff!important;color:#16212e!important;box-shadow:0 6px 24px rgba(20,40,60,.18)!important}
+body.light .leaflet-control-zoom a{background:#ffffff!important;color:#a85f14!important}
+body.light .chk-icon-label{background:rgba(255,255,255,.9);color:#31435a;border:1px solid rgba(28,45,66,.12)}
+body.light .disclaimer{background:rgba(168,95,20,.08);border-color:rgba(168,95,20,.28);color:#7a4d12}
+body.light .sbox input{background:rgba(20,40,60,.04)}
+body.light .chip{background:rgba(20,40,60,.03)}
+body.light .modebtn{background:rgba(20,40,60,.03)}
+body.light .actbtn{background:rgba(20,40,60,.03)}
+body.light #legend{background:rgba(255,255,255,.96);box-shadow:0 6px 24px rgba(20,40,60,.16)}
+body.light #tk{background:#ffffff}
+body.light .mrow:hover{background:rgba(20,40,60,.04)}
+body.light .mrow.active{background:rgba(168,95,20,.09)}
+body.light .dp-src{background:rgba(20,40,60,.03)}
+body.light #dp{background:rgba(20,40,60,.02)}
+body.light .bar-track,body.light .gauge{background:rgba(20,40,60,.09)}
+body.light #sheetgrip .bar{background:rgba(168,95,20,.5)}
+/* intro overlay uses inline styles — needs !important */
+body.light #intro{background:rgba(228,234,240,.9)!important}
+body.light #intro > div{background:#ffffff!important;border-color:rgba(168,95,20,.28)!important;box-shadow:0 20px 60px rgba(20,40,60,.22)!important}
+body.light #intro div[style*="color:#dbe4ee"]{color:#16212e!important}
+body.light #intro div[style*="color:#8ea0b3"]{color:#4d5f72!important}
+body.light #intro div[style*="color:#5a6b7d"]{color:#7b8b9c!important}
+body.light #intro div[style*="color:#e8a15c"]{color:#a85f14!important}
+body.light #intro button{background:#a85f14!important;color:#ffffff!important}
+
+body.light #intro div[style*="rgba(111,183,232,.07)"]{background:rgba(18,98,143,.07)!important;border-color:rgba(18,98,143,.25)!important}
+body.light #intro div[style*="color:#6fb7e8"]{color:#12628f!important}
+body.light #intro div[style*="rgba(240,85,74,.1)"]{background:rgba(200,52,42,.09)!important;border-color:rgba(200,52,42,.3)!important;color:#c8342a!important}
+body.light #intro div[style*="rgba(240,161,60,.1)"]{background:rgba(181,111,16,.1)!important;border-color:rgba(181,111,16,.3)!important;color:#b56f10!important}
+body.light #intro div[style*="rgba(111,183,232,.1)"]{background:rgba(18,98,143,.09)!important;border-color:rgba(18,98,143,.3)!important;color:#12628f!important}
+body.light #legendhead{color:#a85f14}
+
+/* theme toggle button */
+#themebtn{
+  position:fixed; top:12px; right:12px; z-index:1101;
+  width:34px; height:34px; border-radius:9px;
+  background:rgba(13,21,32,.94); border:1px solid var(--line);
+  color:var(--brand); cursor:pointer; font-size:15px;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 16px rgba(0,0,0,.4);
+}
+body.light #themebtn{background:rgba(255,255,255,.96); box-shadow:0 4px 16px rgba(20,40,60,.16)}
+#legend{ top:56px !important; }
+@media (max-width:768px){
+  #themebtn{ top:8px; right:8px; width:38px; height:38px; }
+  #legend{ top:54px !important; right:8px; }
+}
+
 .chk-icon-label{font-family:var(--mono);font-size:9px;color:#c9d6e2;background:rgba(10,14,20,.85);padding:1px 4px;border-radius:3px;white-space:nowrap}
 </style>
 </head>
@@ -270,6 +331,7 @@ body{background:var(--bg);font-family:var(--sans);color:var(--ink)}
 
 <button id="tb">&#9776;</button>
 
+<button id="themebtn" onclick="toggleTheme()" title="Switch light / dark">◐</button>
 <div id="legend">
   <div id="legendhead" onclick="document.getElementById('legend').classList.toggle('open')">
     <span>&#9432;</span><span>Legend</span>
@@ -293,21 +355,33 @@ body{background:var(--bg);font-family:var(--sans);color:var(--ink)}
 
 <div id="tk"><div class="tks" id="tkc"></div></div>
 
-<div id="intro" style="position:fixed;inset:0;z-index:3000;background:rgba(6,10,16,.82);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px">
-  <div style="max-width:440px;background:linear-gradient(180deg,#0f1826,#0b1420);border:1px solid rgba(232,161,92,.25);border-radius:16px;padding:26px 24px;box-shadow:0 20px 60px rgba(0,0,0,.6)">
-    <div style="font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:700;color:#e8a15c;letter-spacing:.5px">CHOKEPOINT<span style="color:#5a6b7d">_</span></div>
-    <div style="font-size:13px;color:#8ea0b3;margin-top:4px;margin-bottom:16px">Critical Minerals &amp; Supply Risk Monitor</div>
-    <div style="font-size:13.5px;color:#dbe4ee;line-height:1.6;margin-bottom:18px">
-      An interactive map of who controls the world's critical minerals &mdash; and where that supply is at risk. Click any mineral to see which countries produce it, what's still buried and untapped, and which shipping chokepoints it depends on.
+<div id="intro" style="position:fixed;inset:0;z-index:3000;background:rgba(6,10,16,.86);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:18px;overflow-y:auto">
+  <div style="max-width:470px;width:100%;background:linear-gradient(180deg,#0f1826,#0b1420);border:1px solid rgba(232,161,92,.25);border-radius:16px;padding:24px 22px;box-shadow:0 20px 60px rgba(0,0,0,.6)">
+
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:700;color:#e8a15c;letter-spacing:.5px">CHOKEPOINT<span style="color:#5a6b7d">_</span></div>
+    <div style="font-size:12px;color:#8ea0b3;margin-top:3px;margin-bottom:16px">Critical Minerals &amp; Supply Risk Monitor</div>
+
+    <div style="font-size:16.5px;color:#dbe4ee;line-height:1.45;font-weight:600;margin-bottom:10px">
+      AI runs on materials one country controls.
     </div>
-    <div style="font-size:11px;color:#5a6b7d;text-transform:uppercase;letter-spacing:1px;font-family:'IBM Plex Mono',monospace;margin-bottom:8px">Try starting with</div>
-    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px">
-      <div onclick="introJump('gallium')" style="cursor:pointer;padding:7px 12px;border-radius:8px;background:rgba(240,85,74,.1);border:1px solid rgba(240,85,74,.3);color:#f0554a;font-size:12px;font-family:'IBM Plex Mono',monospace">Gallium &mdash; 99% one country</div>
-      <div onclick="introJump('ree')" style="cursor:pointer;padding:7px 12px;border-radius:8px;background:rgba(240,161,60,.1);border:1px solid rgba(240,161,60,.3);color:#f0a13c;font-size:12px;font-family:'IBM Plex Mono',monospace">Rare Earths</div>
-      <div onclick="introUS()" style="cursor:pointer;padding:7px 12px;border-radius:8px;background:rgba(111,183,232,.1);border:1px solid rgba(111,183,232,.3);color:#6fb7e8;font-size:12px;font-family:'IBM Plex Mono',monospace">What the US lacks</div>
+    <div style="font-size:13px;color:#8ea0b3;line-height:1.6;margin-bottom:16px">
+      China produces 99% of the world's gallium, 85% of its silicon metal, and makes 94% of its rare-earth magnets &mdash; the physical inputs to every chip, data centre and battery. This map shows who controls each critical material, what's still buried and undeveloped, and which shipping routes it all depends on.
     </div>
-    <button onclick="closeIntro()" style="width:100%;padding:12px;border-radius:9px;background:#e8a15c;border:none;color:#0a0e14;font-weight:700;font-size:14px;font-family:'IBM Plex Sans',sans-serif;cursor:pointer">Explore the map &rarr;</button>
-    <div style="font-size:10px;color:#5a6b7d;text-align:center;margin-top:12px;line-height:1.4">Data verified against USGS Mineral Commodity Summaries 2026.<br>A prototype &mdash; verify figures before publication.</div>
+
+    <div style="padding:9px 11px;background:rgba(111,183,232,.07);border:1px solid rgba(111,183,232,.22);border-radius:8px;margin-bottom:16px">
+      <div style="font-size:10px;color:#6fb7e8;font-family:'IBM Plex Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Built for</div>
+      <div style="font-size:12.5px;color:#dbe4ee;line-height:1.5">Journalists covering trade and energy &middot; supply-chain and procurement teams &middot; policy and risk analysts &mdash; and anyone who wants to know where their materials come from.</div>
+    </div>
+
+    <div style="font-size:10.5px;color:#5a6b7d;text-transform:uppercase;letter-spacing:1px;font-family:'IBM Plex Mono',monospace;margin-bottom:7px">Start here</div>
+    <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px">
+      <div onclick="introJump('gallium')" style="cursor:pointer;padding:7px 11px;border-radius:8px;background:rgba(240,85,74,.1);border:1px solid rgba(240,85,74,.3);color:#f0554a;font-size:11.5px;font-family:'IBM Plex Mono',monospace">Gallium &mdash; 99% one country</div>
+      <div onclick="introJump('ree')" style="cursor:pointer;padding:7px 11px;border-radius:8px;background:rgba(240,161,60,.1);border:1px solid rgba(240,161,60,.3);color:#f0a13c;font-size:11.5px;font-family:'IBM Plex Mono',monospace">Rare earths</div>
+      <div onclick="introUS()" style="cursor:pointer;padding:7px 11px;border-radius:8px;background:rgba(111,183,232,.1);border:1px solid rgba(111,183,232,.3);color:#6fb7e8;font-size:11.5px;font-family:'IBM Plex Mono',monospace">What the US can't make</div>
+    </div>
+
+    <button onclick="closeIntro()" style="width:100%;padding:13px;border-radius:9px;background:#e8a15c;border:none;color:#0a0e14;font-weight:700;font-size:14.5px;font-family:'IBM Plex Sans',sans-serif;cursor:pointer">Explore the map &rarr;</button>
+    <div style="font-size:9.5px;color:#5a6b7d;text-align:center;margin-top:11px;line-height:1.45">Verified against USGS Mineral Commodity Summaries 2026.<br>A prototype &mdash; verify figures before publication.</div>
   </div>
 </div>
 <script>
@@ -552,6 +626,29 @@ function riskOf(m){
   return {lvl:"low",label:"Low",color:"var(--low)"};
 }
 
+
+// ---------- THEME ----------
+var TILE_DARK  = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+var TILE_LIGHT = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+var isLight = false;
+try { isLight = localStorage.getItem('cp-theme') === 'light'; } catch(e){}
+
+function applyTheme(light){
+  isLight = light;
+  document.body.classList.toggle('light', light);
+  var b = document.getElementById('themebtn');
+  if (b) b.textContent = light ? '\u25D1' : '\u25D0';
+  try { localStorage.setItem('cp-theme', light ? 'light' : 'dark'); } catch(e){}
+  if (mapAvailable && typeof addTiles === 'function' && !usingFallbackTiles) {
+    addTiles(light ? TILE_LIGHT : TILE_DARK);
+  }
+  if (typeof activeMineral !== 'undefined' && activeMineral) {
+    var m = MINERALS.find(function(x){return x.id===activeMineral;});
+    if (m) drawProducers(m);
+  }
+}
+function toggleTheme(){ applyTheme(!isLight); }
+
 // ---------- MAP ----------
 var mapAvailable = (typeof L !== 'undefined');
 if (!mapAvailable) {
@@ -604,7 +701,7 @@ function addTiles(url, attribution){
     }
   });
 }
-if (mapAvailable) addTiles('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png');
+if (mapAvailable) addTiles(isLight ? TILE_LIGHT : TILE_DARK);
 var prodLayer = mapAvailable ? L.layerGroup().addTo(M) : noopLayer;
 var chkLayer = mapAvailable ? L.layerGroup().addTo(M) : noopLayer;
 var portLayer = mapAvailable ? L.layerGroup() : noopLayer;
@@ -675,7 +772,12 @@ var CAT_VIS = {
 };
 function catGlyph(cat){var v=CAT_VIS[cat]||CAT_VIS.other;return '<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;background:'+v.c+'22;color:'+v.c+';font-size:12px;flex-shrink:0;margin-right:2px">'+v.g+'</span>';}
 
-function riskColorVar(lvl){return lvl==='sev'?'#f0554a':lvl==='high'?'#f0a13c':lvl==='mod'?'#e8c94a':'#4fc98a';}
+function riskColorVar(lvl){
+  if (typeof isLight !== 'undefined' && isLight){
+    return lvl==='sev'?'#c8342a':lvl==='high'?'#b56f10':lvl==='mod'?'#8f7505':'#12855a';
+  }
+  return lvl==='sev'?'#f0554a':lvl==='high'?'#f0a13c':lvl==='mod'?'#e8c94a':'#4fc98a';
+}
 
 // ---------- COUNTRY INDEX ----------
 function buildCountryIndex(){
@@ -1030,6 +1132,7 @@ document.getElementById('tkc').innerHTML = ticks.concat(ticks).map(function(i){
   return '<span class="tki"><span class="tkd" style="background:'+i.c+'"></span>'+i.t+'</span>';
 }).join('');
 
+applyTheme(isLight);
 renderChips();
 renderList('');
 
