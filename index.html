@@ -630,8 +630,8 @@ function riskOf(m){
 // ---------- THEME ----------
 var TILE_DARK  = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
 var TILE_LIGHT = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
-var isLight = false;
-try { isLight = localStorage.getItem('cp-theme') === 'light'; } catch(e){}
+var isLight = true;   // light is the default; dark is opt-in
+try { if (localStorage.getItem('cp-theme') === 'dark') isLight = false; } catch(e){}
 
 function applyTheme(light){
   isLight = light;
