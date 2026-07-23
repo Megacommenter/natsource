@@ -268,6 +268,23 @@ body.light #intro div[style*="rgba(240,85,74,.1)"]{background:rgba(200,52,42,.09
 body.light #intro div[style*="rgba(240,161,60,.1)"]{background:rgba(181,111,16,.1)!important;border-color:rgba(181,111,16,.3)!important;color:#b56f10!important}
 body.light #intro div[style*="rgba(111,183,232,.1)"]{background:rgba(18,98,143,.09)!important;border-color:rgba(18,98,143,.3)!important;color:#12628f!important}
 body.light #legendhead{color:#a85f14}
+body.light #legend span[style*="dotted #9fb3c8"]{border-top-color:#4a5c6e!important}
+body.light #legend span[style*="solid #e8a15c"]{border-top-color:#94530f!important}
+body.light #legend span[style*="solid #6fb7e8"]{border-top-color:#0f5c86!important}
+body.light #legend span[style*="dashed #c9d6e2"]{border-top-color:#7b8b9c!important}
+
+body.light .chk-icon-label{background:rgba(255,255,255,.94);border:1px solid rgba(28,45,66,.15);font-weight:600}
+body.light #legend span[style*="#e8c94a"]{color:#7d6504!important}
+body.light #legend span[style*="background:#f0554a"]{background:#b82d23!important}
+body.light #legend span[style*="background:#f0a13c"]{background:#9c5f0c!important}
+body.light #legend span[style*="background:#4fc98a"]{background:#0f7a52!important}
+body.light #legend span[style*="solid #4fc98a"]{border-color:#0f7a52!important}
+body.light #legend span[style*="background:#e8a15c"]{background:#94530f!important}
+body.light #legend span[style*="dashed #e8a15c"]{border-color:#94530f!important}
+body.light #legend span[style*="#6fb7e8"]{border-color:#0f5c86!important}
+body.light #legend span[style*="solid #f0554a"]{border-color:#b82d23!important}
+body.light #legend span[style*="solid #f0a13c"]{border-color:#9c5f0c!important}
+body.light .tki{color:#4d5f72}
 
 /* theme toggle button */
 #themebtn{
@@ -318,7 +335,9 @@ body.light #themebtn{background:rgba(255,255,255,.96); box-shadow:0 4px 16px rgb
 
   <div class="chips" style="border-top:1px solid var(--line);padding-top:8px">
     <div class="chip on" id="layer-chk" onclick="toggleLayer('chk')">&#9670; Chokepoints</div>
-    <div class="chip" id="layer-ports" onclick="toggleLayer('ports')">&#9679; Global Ports</div>
+    <div class="chip" id="layer-ports" onclick="toggleLayer('ports')">&#9679; Ports &amp; Terminals</div>
+    <div class="chip" id="layer-rail" onclick="toggleLayer('rail')">&#9552; Rail Corridors</div>
+    <div class="chip" id="layer-pipe" onclick="toggleLayer('pipe')">&#9472; Pipelines</div>
   </div>
 
   <div class="scroll">
@@ -345,7 +364,12 @@ body.light #themebtn{background:rgba(255,255,255,.96); box-shadow:0 4px 16px rgb
     <div class="lg-row"><span class="lg-sym"><span style="width:11px;height:11px;background:rgba(240,85,74,.18);border:2px solid #f0554a;transform:rotate(45deg);display:inline-block"></span></span><span>Chokepoint &mdash; active disruption</span></div>
     <div class="lg-row"><span class="lg-sym"><span style="width:10px;height:10px;background:rgba(240,161,60,.15);border:1.5px solid #f0a13c;transform:rotate(45deg);display:inline-block"></span></span><span>Chokepoint &mdash; elevated tension</span></div>
     <div class="lg-row"><span class="lg-sym"><span style="width:10px;height:10px;background:rgba(111,183,232,.15);border:1.5px solid #6fb7e8;transform:rotate(45deg);display:inline-block"></span></span><span>Chokepoint &mdash; normal operations</span></div>
-    <div class="lg-row"><span class="lg-sym"><span style="width:7px;height:7px;border-radius:50%;background:#e8a15c;display:inline-block"></span></span><span>Major port (toggle in sidebar)</span></div>
+    <div class="lg-row"><span class="lg-sym"><span style="width:8px;height:8px;border-radius:50%;background:#e8a15c;display:inline-block"></span></span><span>Container port &mdash; size = TEU volume</span></div><div class="lg-row"><span class="lg-sym"><span style="width:8px;height:8px;background:#4fc98a55;border:1.5px solid #4fc98a;display:inline-block"></span></span><span>Bulk terminal &mdash; ores, coal, oil, potash</span></div>
+    <div class="lg-sec">Land corridors <span style="text-transform:none;font-style:italic">(schematic)</span></div>
+    <div class="lg-row"><span class="lg-sym"><span style="width:16px;height:0;border-top:2px dotted #9fb3c8;display:inline-block"></span></span><span>Rail corridor</span></div>
+    <div class="lg-row"><span class="lg-sym"><span style="width:16px;height:0;border-top:2.5px solid #e8a15c;display:inline-block"></span></span><span>Crude oil pipeline</span></div>
+    <div class="lg-row"><span class="lg-sym"><span style="width:16px;height:0;border-top:2.5px solid #6fb7e8;display:inline-block"></span></span><span>Natural gas pipeline</span></div>
+    <div class="lg-row"><span class="lg-sym"><span style="width:16px;height:0;border-top:2px dashed #c9d6e2;display:inline-block"></span></span><span>Proposed &mdash; not built</span></div>
     <div class="lg-sec">Risk colour</div>
     <div class="lg-row"><span class="lg-sym"><span style="width:9px;height:9px;border-radius:50%;background:#f0554a;display:inline-block"></span></span><span>Severe &mdash; top producer &ge;50%</span></div>
     <div class="lg-row"><span class="lg-sym"><span style="width:9px;height:9px;border-radius:50%;background:#f0a13c;display:inline-block"></span></span><span>High &ge;35% &nbsp;&middot;&nbsp; <span style="color:#e8c94a">Moderate &ge;20%</span></span></div>
@@ -617,6 +641,135 @@ var INCIDENTS = [
 ];
 function incidentTags(ids){return ids.map(function(id){var m=MINERALS.find(function(x){return x.id===id;});return m?m.n:id;});}
 
+
+// ---------- LARGEST PRODUCER BY COUNTRY ----------
+// Keyed "mineralId|Country" (country matched on the text before any parenthesis).
+// These name the largest or among the largest operators in that country. Ownership
+// and rankings shift with M&A, so treat as indicative and verify before publication.
+var COMPANIES = {
+ "ree|China":"China Rare Earth Group / China Northern Rare Earth",
+ "ree|USA":"MP Materials (Mountain Pass)",
+ "ree|Australia":"Lynas Rare Earths",
+ "ree|Myanmar":"Informal / unregulated operations",
+ "lithium|Australia":"Talison Lithium (Greenbushes) \u2014 Albemarle/Tianqi/IGO",
+ "lithium|Chile":"SQM; Albemarle (Salar de Atacama)",
+ "lithium|China":"Ganfeng Lithium; Tianqi Lithium",
+ "lithium|Zimbabwe":"Sinomine (Bikita); Huayou Cobalt (Arcadia)",
+ "lithium|Argentina":"Rio Tinto (ex-Arcadium); Ganfeng",
+ "lithium|Brazil":"Sigma Lithium; CBL",
+ "lithium|Mali":"Ganfeng Lithium (Goulamina)",
+ "cobalt|DR Congo":"CMOC Group (Tenke, KFM); Glencore (KCC, Mutanda)",
+ "cobalt|Indonesia":"Huayou Cobalt; PT Vale Indonesia",
+ "cobalt|Russia":"Nornickel",
+ "cobalt|Madagascar":"Ambatovy (Sherritt)",
+ "nickel|Indonesia":"Tsingshan Holding Group; PT Vale Indonesia; Harita Nickel",
+ "nickel|Philippines":"Nickel Asia Corporation",
+ "nickel|Russia":"Nornickel",
+ "nickel|Canada":"Vale Canada (Sudbury); Glencore Sudbury",
+ "nickel|New Caledonia":"SLN (Eramet); Prony Resources",
+ "nickel|China":"Jinchuan Group",
+ "graphite|China":"BTR New Material; Shanshan (anode processing)",
+ "graphite|Madagascar":"NextSource Materials (Molo)",
+ "graphite|Tanzania":"Various \u2014 Black Rock Mining, Ecograf projects",
+ "graphite|Brazil":"Nacional de Grafite",
+ "graphite|Mozambique":"Syrah Resources (Balama)",
+ "copper|Chile":"Codelco (state-owned); BHP (Escondida)",
+ "copper|DR Congo":"CMOC (Tenke); Ivanhoe/Zijin (Kamoa-Kakula); Glencore",
+ "copper|Peru":"Freeport (Cerro Verde); MMG (Las Bambas); Antamina",
+ "copper|China":"Jiangxi Copper; Zijin Mining",
+ "platinum|South Africa":"Valterra Platinum (ex-Anglo American Platinum); Impala; Sibanye-Stillwater",
+ "platinum|Russia":"Nornickel",
+ "platinum|Zimbabwe":"Zimplats (Impala); Mimosa",
+ "platinum|Canada":"Vale; Glencore (PGM byproduct)",
+ "palladium|Russia":"Nornickel",
+ "palladium|South Africa":"Valterra Platinum; Impala; Sibanye-Stillwater",
+ "palladium|Canada":"Impala Canada (Lac des Iles)",
+ "palladium|Zimbabwe":"Zimplats (Impala)",
+ "gallium|China":"Chalco (Aluminum Corp of China); Zhuhai Fangyuan",
+ "germanium|China":"Yunnan Germanium; Yunnan Chihong Zn & Ge",
+ "silicon|China":"Hoshine Silicon; Tongwei, Daqo, Xinte (polysilicon)",
+ "titanium|China":"BaoTi Group; Zunyi Titanium",
+ "titanium|Japan":"Osaka Titanium Technologies; Toho Titanium",
+ "titanium|Russia":"VSMPO-AVISMA",
+ "titanium|Kazakhstan":"Ust-Kamenogorsk Titanium & Magnesium (UKTMP)",
+ "titanium|Saudi Arabia":"Toho Titanium Metal Saudi Arabia (ATTM)",
+ "tungsten|China":"China Minmetals; Xiamen Tungsten",
+ "tungsten|Vietnam":"Masan High-Tech Materials (Nui Phao)",
+ "tungsten|Kazakhstan":"Boguty Mining",
+ "tungsten|Portugal":"Beralt Tin & Wolfram (Panasqueira) \u2014 Almonty Industries",
+ "tungsten|Russia":"Primorsky GOK",
+ "tungsten|Bolivia":"Comibol-linked operations",
+ "vanadium|China":"Pangang Group (Panzhihua)",
+ "vanadium|Russia":"Evraz",
+ "vanadium|South Africa":"Bushveld Minerals; Glencore (Rhovan)",
+ "chromium|South Africa":"Glencore-Merafe Chrome Venture; Samancor Chrome",
+ "chromium|Kazakhstan":"Kazchrome (ERG)",
+ "chromium|Turkey":"Yildirim Group (Eti Krom)",
+ "manganese|South Africa":"South32 (Hotazel); Assmang",
+ "manganese|Gabon":"Comilog (Eramet)",
+ "manganese|Australia":"South32 (GEMCO, Groote Eylandt)",
+ "antimony|China":"Hunan Gold; Hsikwangshan Twinkling Star",
+ "antimony|Russia":"GeoProMining",
+ "antimony|Tajikistan":"Talco Gold (Anzob)",
+ "antimony|Bolivia":"Small-scale and cooperative mining",
+ "antimony|Myanmar":"Informal operations",
+ "tin|China":"Yunnan Tin Company",
+ "tin|Indonesia":"PT Timah (state-owned)",
+ "tin|Peru":"Minsur",
+ "tin|Brazil":"Minsur (Taboca)",
+ "tin|DR Congo":"Alphamin Resources (Bisie)",
+ "tin|Bolivia":"Comibol (Huanuni, Vinto)",
+ "tin|Myanmar":"Wa State operations (informal)",
+ "uranium|Kazakhstan":"Kazatomprom (state-controlled)",
+ "uranium|Canada":"Cameco",
+ "uranium|Namibia":"CNNC (R\u00f6ssing); CGN (Husab)",
+ "potash|Canada":"Nutrien; Mosaic",
+ "potash|Russia":"Uralkali",
+ "potash|Belarus":"Belaruskali (state-owned)",
+ "phosphate|China":"Yuntianhua Group",
+ "phosphate|Morocco":"OCP Group (state-owned)",
+ "phosphate|USA":"Mosaic",
+ "phosphate|Russia":"PhosAgro",
+ "silver|Mexico":"Fresnillo plc; Industrias Pe\u00f1oles",
+ "silver|China":"Multiple \u2014 largely lead/zinc byproduct",
+ "silver|Peru":"Buenaventura; Antamina",
+ "metcoal|Australia":"BHP Mitsubishi Alliance (BMA); Anglo American",
+ "metcoal|USA":"Alpha Metallurgical; Warrior Met Coal",
+ "metcoal|Russia":"Mechel; Raspadskaya (Evraz)",
+ "iron|Australia":"Rio Tinto; BHP; Fortescue",
+ "iron|Brazil":"Vale",
+ "iron|China":"Multiple state and private operators",
+ "iron|India":"NMDC (state-owned)",
+ "iron|Guinea":"Rio Tinto / Winning Consortium Simandou",
+ "oil|USA":"ExxonMobil; Chevron; ConocoPhillips (fragmented market)",
+ "oil|Saudi Arabia":"Saudi Aramco (state-owned)",
+ "oil|Russia":"Rosneft",
+ "oil|Canada":"Canadian Natural Resources; Suncor",
+ "oil|Iraq":"Basra Oil Company (state-owned)",
+ "oil|China":"PetroChina (CNPC)",
+ "oil|UAE":"ADNOC (state-owned)",
+ "oil|Iran":"National Iranian Oil Company",
+ "oil|Brazil":"Petrobras",
+ "oil|Kuwait":"Kuwait Petroleum Corporation",
+ "oil|Nigeria":"NNPC; Shell; TotalEnergies (joint ventures)",
+ "oil|Guyana":"ExxonMobil (Stabroek block operator)",
+ "natgas|USA":"EQT Corporation; Expand Energy",
+ "natgas|Russia":"Gazprom",
+ "natgas|Iran":"National Iranian Gas Company",
+ "natgas|China":"PetroChina (CNPC)",
+ "natgas|Canada":"Tourmaline Oil",
+ "natgas|Qatar":"QatarEnergy (state-owned)",
+ "natgas|Australia":"Woodside Energy",
+ "natgas|Norway":"Equinor",
+ "gold|China":"Zijin Mining; Shandong Gold",
+ "gold|Russia":"Polyus",
+ "gold|Australia":"Newmont"
+};
+function companyFor(mid, country){
+  var base = country.split(' (')[0].trim();
+  return COMPANIES[mid + '|' + base] || null;
+}
+
 // ---------- RISK ----------
 function riskOf(m){
   var top = m.prod[0].p;
@@ -626,6 +779,23 @@ function riskOf(m){
   return {lvl:"low",label:"Low",color:"var(--low)"};
 }
 
+
+
+
+
+
+// ---------- THEME COLOUR MAPPING ----------
+// Dark-theme colours are tuned for a near-black background. On white they wash out,
+// so every colour injected into inline styles/markers goes through TC().
+var LIGHT_MAP = {
+  '#f0554a':'#b82d23', '#f0a13c':'#9c5f0c', '#e8c94a':'#7d6504', '#4fc98a':'#0f7a52',
+  '#6fb7e8':'#0f5c86', '#e8a15c':'#94530f', '#ffb4ac':'#9c2118', '#f5cf9b':'#7a4f0a',
+  '#c9d6e2':'#4a5c6e', '#e05c9e':'#9c2062', '#d98a5a':'#7d4718', '#8fd14f':'#4a7d12',
+  '#b9c6d3':'#3d4d5e'
+};
+function TC(hex){
+  return (typeof isLight !== 'undefined' && isLight && LIGHT_MAP[hex]) ? LIGHT_MAP[hex] : hex;
+}
 
 // ---------- THEME ----------
 var TILE_DARK  = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
@@ -642,9 +812,19 @@ function applyTheme(light){
   if (mapAvailable && typeof addTiles === 'function' && !usingFallbackTiles) {
     addTiles(light ? TILE_LIGHT : TILE_DARK);
   }
+  if (typeof drawChokepoints === 'function') drawChokepoints();
+  if (typeof drawPorts === 'function') drawPorts();
+  if (typeof drawCorridors === 'function') drawCorridors();
   if (typeof activeMineral !== 'undefined' && activeMineral) {
     var m = MINERALS.find(function(x){return x.id===activeMineral;});
     if (m) drawProducers(m);
+  }
+  if (typeof renderChips === 'function') renderChips();
+  if (typeof currentView !== 'undefined'){
+    var q = (document.getElementById('si')||{}).value || '';
+    if(currentView==='minerals') renderList(q);
+    else if(currentView==='countries') renderCountries(q);
+    else if(currentView==='us') renderUSGaps(q);
   }
 }
 function toggleTheme(){ applyTheme(!isLight); }
@@ -713,46 +893,237 @@ var CHK_STATUS = {
   // all others: 'normal' (structural chokepoints, no current geopolitical disruption)
 };
 
-if (mapAvailable) Object.keys(CHK).forEach(function(k){
-  var c = CHK[k];
-  var status = CHK_STATUS[k] || 'normal';
-  var col = status==='active' ? '#f0554a' : status==='elevated' ? '#f0a13c' : '#6fb7e8';
-  var bg  = status==='active' ? 'rgba(240,85,74,.18)' : status==='elevated' ? 'rgba(240,161,60,.15)' : 'rgba(111,183,232,.15)';
-  var size = status==='active' ? 14 : 12;
-  var ic = L.divIcon({className:'',html:'<div style="width:'+size+'px;height:'+size+'px;background:'+bg+';border:'+(status==='active'?'2px':'1.5px')+' solid '+col+';border-radius:3px;transform:rotate(45deg)"></div>',iconSize:[size,size],iconAnchor:[size/2,size/2]});
-  var riskTag = status==='active'
-    ? '<div style="font-size:10px;font-family:var(--mono);color:#f0554a;font-weight:700;margin-bottom:3px">&#9888; ACTIVE DISRUPTION</div>'
-    : status==='elevated'
-    ? '<div style="font-size:10px;font-family:var(--mono);color:#f0a13c;font-weight:700;margin-bottom:3px">&#9651; ELEVATED TENSION &mdash; TRAFFIC FLOWING</div>'
-    : '<div style="font-size:10px;font-family:var(--mono);color:#6fb7e8;margin-bottom:3px">Structural chokepoint &mdash; normal operations</div>';
-  L.marker([c.lat,c.lng],{icon:ic}).addTo(chkLayer).bindPopup('<div class="pp-t">'+c.n+'</div>'+riskTag+'<div style="font-size:11px;color:#b9c6d3;max-width:260px">'+c.note+'</div>');
-  var lblStyle = status==='active' ? 'color:#ffb4ac;border:1px solid rgba(240,85,74,.4)' : status==='elevated' ? 'color:#f5cf9b;border:1px solid rgba(240,161,60,.35)' : '';
-  L.marker([c.lat,c.lng],{icon:L.divIcon({className:'',html:'<div class="chk-icon-label" style="'+lblStyle+'">'+c.n+'</div>',iconSize:[0,0],iconAnchor:[-10,0]})}).addTo(chkLayer);
-});
+function drawChokepoints(){
+  if(!mapAvailable) return;
+  chkLayer.clearLayers();
+  Object.keys(CHK).forEach(function(k){
+    var c = CHK[k];
+    var status = CHK_STATUS[k] || 'normal';
+    var col = TC(status==='active' ? '#f0554a' : status==='elevated' ? '#f0a13c' : '#6fb7e8');
+    var bg  = status==='active' ? 'rgba(240,85,74,.18)' : status==='elevated' ? 'rgba(240,161,60,.15)' : 'rgba(111,183,232,.15)';
+    var size = status==='active' ? 14 : 12;
+    var ic = L.divIcon({className:'',html:'<div style="width:'+size+'px;height:'+size+'px;background:'+bg+';border:'+(status==='active'?'2px':'1.5px')+' solid '+col+';border-radius:3px;transform:rotate(45deg)"></div>',iconSize:[size,size],iconAnchor:[size/2,size/2]});
+    var riskTag = status==='active'
+      ? '<div style="font-size:10px;font-family:var(--mono);color:'+TC('#f0554a')+';font-weight:700;margin-bottom:3px">&#9888; ACTIVE DISRUPTION</div>'
+      : status==='elevated'
+      ? '<div style="font-size:10px;font-family:var(--mono);color:'+TC('#f0a13c')+';font-weight:700;margin-bottom:3px">&#9651; ELEVATED TENSION &mdash; TRAFFIC FLOWING</div>'
+      : '<div style="font-size:10px;font-family:var(--mono);color:'+TC('#6fb7e8')+';margin-bottom:3px">Structural chokepoint &mdash; normal operations</div>';
+    L.marker([c.lat,c.lng],{icon:ic}).addTo(chkLayer).bindPopup('<div class="pp-t">'+c.n+'</div>'+riskTag+'<div style="font-size:11px;color:'+TC('#b9c6d3')+';max-width:260px">'+c.note+'</div>');
+    // label: strong, high-contrast colour per theme
+    var lblCol = isLight
+      ? (status==='active' ? '#9c2118' : status==='elevated' ? '#7a4f0a' : '#31435a')
+      : (status==='active' ? '#ffb4ac' : status==='elevated' ? '#f5cf9b' : '#c9d6e2');
+    var lblBorder = status==='active' ? '1px solid rgba(200,52,42,.45)' : status==='elevated' ? '1px solid rgba(181,111,16,.4)' : '';
+    var lblStyle = 'color:'+lblCol+';font-weight:'+(status==='normal'?'500':'700')+';'+(lblBorder?'border:'+lblBorder+';':'');
+    L.marker([c.lat,c.lng],{icon:L.divIcon({className:'',html:'<div class="chk-icon-label" style="'+lblStyle+'">'+c.n+'</div>',iconSize:[0,0],iconAnchor:[-10,0]})}).addTo(chkLayer);
+  });
+}
+if (mapAvailable) drawChokepoints();
 
 // ---------- GLOBAL PORTS (top container/bulk ports by throughput) ----------
 var PORTS = [
-  {n:"Shanghai",lat:31.4,lng:121.5,note:"World's busiest container port by volume."},
-  {n:"Singapore",lat:1.26,lng:103.8,note:"Top transshipment hub; sits directly on the Malacca Strait approach."},
-  {n:"Ningbo-Zhoushan",lat:29.9,lng:121.9,note:"World's busiest port by cargo tonnage (bulk + container combined)."},
-  {n:"Shenzhen",lat:22.5,lng:114.0,note:"Core South China manufacturing export hub."},
-  {n:"Guangzhou",lat:23.1,lng:113.3,note:"Major Pearl River Delta port."},
-  {n:"Busan",lat:35.1,lng:129.0,note:"Northeast Asia's largest transshipment hub."},
-  {n:"Hong Kong",lat:22.3,lng:114.2,note:"Historic entrepôt; still major transshipment and finance-linked trade hub."},
-  {n:"Kaohsiung",lat:22.6,lng:120.3,note:"Taiwan's largest port — directly exposed to any Taiwan Strait disruption."},
-  {n:"Jebel Ali (Dubai)",lat:25.0,lng:55.1,note:"Middle East's largest port; gateway just outside the Strait of Hormuz."},
-  {n:"Rotterdam",lat:51.95,lng:4.14,note:"Europe's largest port — main entry point for Gulf/Asia energy and mineral cargo into the EU."},
-  {n:"Antwerp-Bruges",lat:51.3,lng:4.3,note:"Europe's #2 port; major chemicals and bulk hub."},
-  {n:"Hamburg",lat:53.5,lng:9.97,note:"Germany's largest port, feeds directly into the Kiel Canal route to the Baltic."},
-  {n:"Los Angeles / Long Beach",lat:33.75,lng:-118.2,note:"Largest container gateway in the Americas."},
-  {n:"New York / New Jersey",lat:40.67,lng:-74.1,note:"Largest East Coast US port complex."},
-  {n:"Santos",lat:-23.96,lng:-46.33,note:"Brazil's largest port — key soy, iron ore and general cargo gateway."},
-  {n:"Colón (Panama)",lat:9.36,lng:-79.9,note:"Atlantic-side gateway to the Panama Canal."}
+  {n:"Shanghai",c:"China",t:51506,lat:31.23,lng:121.47},
+  {n:"Singapore",c:"Singapore",t:41124,lat:1.26,lng:103.82},
+  {n:"Ningbo-Zhoushan",c:"China",t:39308,lat:29.87,lng:121.55},
+  {n:"Shenzhen",c:"China",t:33380,lat:22.54,lng:114.06},
+  {n:"Qingdao",c:"China",t:30870,lat:36.07,lng:120.32},
+  {n:"Guangzhou",c:"China",t:26070,lat:23.11,lng:113.26},
+  {n:"Busan",c:"South Korea",t:24402,lat:35.10,lng:129.04},
+  {n:"Tianjin",c:"China",t:23290,lat:38.98,lng:117.72},
+  {n:"Jebel Ali (Dubai)",c:"UAE",t:15536,lat:25.01,lng:55.06},
+  {n:"Port Klang",c:"Malaysia",t:14645,lat:3.00,lng:101.39},
+  {n:"Rotterdam",c:"Netherlands",t:13820,lat:51.95,lng:4.14},
+  {n:"Hong Kong",c:"Hong Kong",t:13668,lat:22.32,lng:114.13},
+  {n:"Antwerp-Bruges",c:"Belgium",t:13532,lat:51.26,lng:4.40},
+  {n:"Xiamen",c:"China",t:12255,lat:24.48,lng:118.09},
+  {n:"Tanjung Pelepas",c:"Malaysia",t:12253,lat:1.36,lng:103.55},
+  {n:"Los Angeles",c:"USA",t:10297,lat:33.74,lng:-118.27},
+  {n:"Tanger-Med",c:"Morocco",t:10241,lat:35.88,lng:-5.50},
+  {n:"Taicang / Suzhou",c:"China",t:9670,lat:31.45,lng:121.11},
+  {n:"Long Beach",c:"USA",t:9650,lat:33.75,lng:-118.19},
+  {n:"Laem Chabang",c:"Thailand",t:9555,lat:13.08,lng:100.89},
+  {n:"Kaohsiung",c:"Taiwan",t:9228,lat:22.61,lng:120.28},
+  {n:"Ho Chi Minh City",c:"Vietnam",t:9158,lat:10.76,lng:106.70},
+  {n:"Beibu Gulf",c:"China",t:9020,lat:21.62,lng:108.35},
+  {n:"New York / New Jersey",c:"USA",t:8698,lat:40.67,lng:-74.14},
+  {n:"Mundra",c:"India",t:8217,lat:22.84,lng:69.72},
+  {n:"Tanjung Priok",c:"Indonesia",t:7827,lat:-6.10,lng:106.88},
+  {n:"Hamburg",c:"Germany",t:7800,lat:53.54,lng:9.97},
+  {n:"Colombo",c:"Sri Lanka",t:7780,lat:6.94,lng:79.84},
+  {n:"Haiphong",c:"Vietnam",t:7151,lat:20.86,lng:106.68},
+  {n:"Cai Mep",c:"Vietnam",t:7083,lat:10.52,lng:107.02},
+  {n:"Jawaharlal Nehru",c:"India",t:7053,lat:18.95,lng:72.95},
+  {n:"Rizhao",c:"China",t:6710,lat:35.39,lng:119.53},
+  {n:"Lianyungang",c:"China",t:6691,lat:34.75,lng:119.45},
+  {n:"Jeddah",c:"Saudi Arabia",t:5586,lat:21.48,lng:39.19},
+  {n:"Yingkou",c:"China",t:5560,lat:40.67,lng:122.23},
+  {n:"Savannah",c:"USA",t:5546,lat:32.08,lng:-81.09},
+  {n:"Manila",c:"Philippines",t:5503,lat:14.60,lng:120.96},
+  {n:"Santos",c:"Brazil",t:5485,lat:-23.96,lng:-46.33},
+  {n:"Valencia",c:"Spain",t:5476,lat:39.45,lng:-0.32},
+  {n:"Abu Dhabi (Khalifa)",c:"UAE",t:5421,lat:24.51,lng:54.38},
+  {n:"Dalian",c:"China",t:5400,lat:38.92,lng:121.63},
+  {n:"Col\u00f3n",c:"Panama",t:5395,lat:9.36,lng:-79.90},
+  {n:"Yantai",c:"China",t:5090,lat:37.54,lng:121.39},
+  {n:"Piraeus",c:"Greece",t:4792,lat:37.94,lng:23.64},
+  {n:"Algeciras",c:"Spain",t:4713,lat:36.13,lng:-5.44},
+  {n:"Tokyo",c:"Japan",t:4701,lat:35.62,lng:139.78},
+  {n:"Bremen / Bremerhaven",c:"Germany",t:4445,lat:53.54,lng:8.58},
+  {n:"Port Said",c:"Egypt",t:4438,lat:31.26,lng:32.30},
+  {n:"Tanjung Perak",c:"Indonesia",t:4300,lat:-7.20,lng:112.73},
+  {n:"Houston",c:"USA",t:4140,lat:29.73,lng:-95.27},
+  {n:"Dongguan",c:"China",t:4018,lat:22.82,lng:113.75},
+  {n:"Balboa",c:"Panama",t:4014,lat:8.95,lng:-79.56}
 ];
-if (mapAvailable) PORTS.forEach(function(p){
-  var ic = L.divIcon({className:'',html:'<div style="width:7px;height:7px;background:#e8a15c;border-radius:50%;box-shadow:0 0 0 2px rgba(232,161,92,.2)"></div>',iconSize:[7,7],iconAnchor:[3,3]});
-  L.marker([p.lat,p.lng],{icon:ic}).addTo(portLayer).bindPopup('<div class="pp-t">'+p.n+'</div><div class="pp-s">Major global port</div><div style="font-size:11px;color:#b9c6d3;max-width:220px">'+p.note+'</div>');
-});
+
+// ---------- BULK / COMMODITY TERMINALS ----------
+// Container throughput is a poor proxy for mineral trade: ores, coal and fertiliser
+// move as dry bulk through entirely different terminals. These are the ports that
+// actually matter for the commodities on this map.
+var BULK_PORTS = [
+  {n:"Prince Rupert",c:"Canada",k:"Containers, coal, propane",note:"North America's deepest ice-free harbour and its closest port to Asia \u2014 roughly 3 days' sail shorter than Vancouver. Ridley Island handles coal and propane; Ksi Lisims LNG is proposed nearby.",lat:54.32,lng:-130.32},
+  {n:"Kitimat (LNG Canada)",c:"Canada",k:"LNG",note:"Canada's first large-scale LNG export terminal, shipping from mid-2025. Fed by Coastal GasLink from the Montney gas fields in BC and Alberta \u2014 the route that finally gives Canadian gas a Pacific outlet instead of selling only into the US.",lat:54.05,lng:-128.65},
+  {n:"Churchill",c:"Canada",k:"Grain, potash (seasonal)",note:"Canada's only Arctic deep-water port, on Hudson Bay with a direct great-circle route to Europe. Severely constrained: an ice-limited shipping season and a single fragile rail line that washed out in 2017 and stayed closed 18 months. Repeated proposals to pipe Alberta oil or gas here have never been built.",lat:58.77,lng:-94.17},
+  {n:"Port Hedland",c:"Australia",k:"Iron ore",note:"World's largest bulk export terminal by tonnage \u2014 the main outlet for Pilbara iron ore.",lat:-20.31,lng:118.58},
+  {n:"Dampier",c:"Australia",k:"Iron ore, salt",note:"Second Pilbara iron ore outlet, operated by Rio Tinto.",lat:-20.66,lng:116.71},
+  {n:"Newcastle",c:"Australia",k:"Coal",note:"Among the world's largest coal export ports.",lat:-32.92,lng:151.78},
+  {n:"Hay Point / Dalrymple Bay",c:"Australia",k:"Metallurgical coal",note:"Queensland's main coking coal outlet \u2014 the seaborne met coal market runs through here.",lat:-21.28,lng:149.30},
+  {n:"Gladstone",c:"Australia",k:"Coal, alumina",note:"Coal and alumina/aluminium exports.",lat:-23.84,lng:151.25},
+  {n:"Vancouver",c:"Canada",k:"Potash, coal, grain",note:"Canada's largest port. Not a top-50 container port, but a major bulk terminal \u2014 the primary outlet for Saskatchewan potash, which supplies ~79% of US imports.",lat:49.29,lng:-123.11},
+  {n:"Tubar\u00e3o (Vit\u00f3ria)",c:"Brazil",k:"Iron ore",note:"Vale's principal Atlantic iron ore terminal.",lat:-20.28,lng:-40.24},
+  {n:"Ponta da Madeira",c:"Brazil",k:"Iron ore",note:"Outlet for the Caraj\u00e1s system, among the highest-grade iron ore on earth.",lat:-2.57,lng:-44.37},
+  {n:"Saldanha Bay",c:"South Africa",k:"Iron ore",note:"South Africa's dedicated iron ore export terminal.",lat:-33.02,lng:17.94},
+  {n:"Richards Bay",c:"South Africa",k:"Coal",note:"Major coal terminal; chronic rail bottlenecks have throttled exports regardless of reserves.",lat:-28.80,lng:32.09},
+  {n:"Durban",c:"South Africa",k:"Manganese, chrome",note:"Main outlet for South African manganese and chromite \u2014 both heavily concentrated globally.",lat:-29.87,lng:31.03},
+  {n:"Qinhuangdao",c:"China",k:"Coal",note:"China's largest coal handling port.",lat:39.92,lng:119.60},
+  {n:"Mejillones / Antofagasta",c:"Chile",k:"Copper",note:"Export outlet for northern Chilean copper, the world's largest copper source.",lat:-23.10,lng:-70.45},
+  {n:"Callao",c:"Peru",k:"Copper, silver, zinc",note:"Peru's main mineral export port.",lat:-12.05,lng:-77.14},
+  {n:"Lobito",c:"Angola",k:"Copper, cobalt",note:"Atlantic end of the Lobito Corridor \u2014 the rail route being rebuilt to move DRC copper and cobalt west instead of east.",lat:-12.36,lng:13.55},
+  {n:"Dar es Salaam",c:"Tanzania",k:"Copper, cobalt, graphite",note:"Indian Ocean outlet for DRC copper/cobalt and Tanzanian graphite.",lat:-6.82,lng:39.29},
+  {n:"Ras Tanura",c:"Saudi Arabia",k:"Crude oil",note:"One of the world's largest oil export terminals \u2014 loads inside the Gulf, so exposed to Hormuz.",lat:26.64,lng:50.16},
+  {n:"Kharg Island",c:"Iran",k:"Crude oil",note:"Handles the majority of Iranian crude exports. Inside the Gulf.",lat:29.23,lng:50.32},
+  {n:"Ras Laffan",c:"Qatar",k:"LNG",note:"The world's largest LNG export facility. Its entire volume transits Hormuz.",lat:25.90,lng:51.55},
+  {n:"Port of Rotterdam (bulk)",c:"Netherlands",k:"Ores, coal, oil",note:"Europe's main entry point for imported ores, coal and crude, alongside its container role.",lat:51.89,lng:4.29}
+];
+
+var showBulk = true;
+
+function drawPorts(){
+  if(!mapAvailable) return;
+  portLayer.clearLayers();
+  var maxT = 51506;
+  PORTS.forEach(function(p, i){
+    var pc = TC('#e8a15c');
+    var r = 3 + Math.sqrt(p.t / maxT) * 7;
+    var circle = L.circleMarker([p.lat,p.lng],{radius:r,color:pc,weight:1.5,fillColor:pc,fillOpacity:.45}).addTo(portLayer);
+    circle.bindPopup('<div class="pp-t">'+p.n+'</div><div class="pp-s">'+p.c+' &middot; container port #'+(i+1)+'</div>'+
+      '<div class="pp-r"><span class="pp-l">2024 throughput</span><span class="pp-v">'+(p.t/1000).toFixed(1)+'M TEU</span></div>'+
+      '<div style="font-size:10px;color:'+TC('#b9c6d3')+';margin-top:4px">Source: World Shipping Council / Lloyd\'s List, 2024</div>');
+  });
+  BULK_PORTS.forEach(function(p){
+    var bc = TC('#4fc98a');
+    var ic = L.divIcon({className:'',html:'<div style="width:9px;height:9px;background:'+bc+'55;border:1.5px solid '+bc+';"></div>',iconSize:[9,9],iconAnchor:[4,4]});
+    L.marker([p.lat,p.lng],{icon:ic}).addTo(portLayer).bindPopup('<div class="pp-t">'+p.n+'</div><div class="pp-s">'+p.c+' &middot; bulk terminal</div>'+
+      '<div class="pp-r"><span class="pp-l">Handles</span><span class="pp-v">'+p.k+'</span></div>'+
+      '<div style="font-size:11px;color:'+TC('#b9c6d3')+';max-width:230px;margin-top:4px">'+p.note+'</div>');
+  });
+}
+if (mapAvailable) drawPorts();
+
+// ---------- STRATEGIC LAND CORRIDORS ----------
+// IMPORTANT: these are SCHEMATIC routes drawn through major waypoints, not surveyed
+// geometry. They show which corridor connects which places and why it matters; they
+// are not accurate to the kilometre and should not be used for anything operational.
+var RAIL = [
+ {n:"Trans-Siberian Railway",r:"Russia",note:"Moscow to Vladivostok \u2014 the spine of Russian bulk freight and the land route for Russian metals and coal to Pacific ports.",
+  p:[[55.75,37.6],[56.8,60.6],[55.0,73.4],[55.0,82.9],[56.0,92.9],[52.3,104.3],[52.0,113.5],[48.5,135.1],[43.1,131.9]]},
+ {n:"China-Europe Railway Express",r:"China / Kazakhstan / EU",note:"The Belt and Road rail corridor. Chongqing to Duisburg via the Alashankou/Dostyk border crossing \u2014 faster than sea, cheaper than air, and it bypasses Malacca and Suez entirely.",
+  p:[[29.6,106.5],[43.8,87.6],[45.2,82.6],[51.2,71.4],[55.0,49.0],[52.1,23.7],[52.2,21.0],[51.4,6.8]]},
+ {n:"Daqin coal railway",r:"China",note:"Datong to Qinhuangdao \u2014 among the highest-tonnage freight lines on earth, moving Shanxi coal to the coast.",
+  p:[[40.1,113.3],[39.9,119.6]]},
+ {n:"West-East US freight corridor",r:"USA",note:"Los Angeles/Long Beach inland via Barstow and Albuquerque to Kansas City and Chicago \u2014 the main path for Pacific imports into the US interior.",
+  p:[[34.0,-118.2],[34.9,-117.0],[35.1,-106.6],[39.1,-94.6],[41.9,-87.6]]},
+ {n:"Northern US freight corridor",r:"USA",note:"Seattle/Tacoma east through Spokane and Billings to Minneapolis and Chicago \u2014 also the outlet for Powder River Basin coal and Bakken crude by rail.",
+  p:[[47.6,-122.3],[47.7,-117.4],[45.8,-108.5],[45.0,-93.3],[41.9,-87.6]]},
+ {n:"CN transcontinental main line",r:"Canada",note:"Prince Rupert through Prince George, Edmonton and Saskatoon to Winnipeg \u2014 how Saskatchewan potash and Alberta products reach the Pacific.",
+  p:[[54.32,-130.32],[53.9,-122.7],[53.5,-113.5],[52.1,-106.6],[49.9,-97.1],[48.4,-89.2]]},
+ {n:"Hudson Bay Railway",r:"Canada",note:"The Pas to Churchill \u2014 the only land link to Canada's Arctic port. Built on permafrost and muskeg, washed out in 2017 and closed for 18 months. Its fragility is the main reason Churchill has never become a major export route.",
+  p:[[53.8,-101.3],[55.7,-97.9],[58.77,-94.17]]},
+ {n:"Rhine-Alpine corridor",r:"Europe",note:"Rotterdam and Antwerp inland via Duisburg and Basel to Milan and Genoa \u2014 the busiest freight corridor in Europe and the route imported ores take to European industry.",
+  p:[[51.9,4.5],[51.4,6.8],[50.9,7.0],[49.0,8.4],[47.6,7.6],[45.5,9.2],[44.4,8.9]]},
+ {n:"Tokaido-Sanyo corridor",r:"Japan",note:"Tokyo through Nagoya, Osaka and Hiroshima to Fukuoka \u2014 the industrial spine linking Japan's manufacturing base and its ports.",
+  p:[[35.7,139.7],[35.2,136.9],[34.7,135.5],[34.4,132.5],[33.6,130.4]]},
+ {n:"Lobito Corridor",r:"DRC / Angola",note:"Kolwezi west through Angola to the Atlantic at Lobito. Being rebuilt with US and EU backing specifically to move Congolese copper and cobalt west, rather than east through Tanzania or into Chinese-controlled routes.",
+  p:[[-10.7,25.5],[-10.7,22.3],[-11.8,19.9],[-12.8,15.7],[-12.36,13.55]]},
+ {n:"TAZARA railway",r:"DRC / Zambia / Tanzania",note:"The eastern route for Copperbelt output, from Kolwezi and Lubumbashi to Dar es Salaam. Chinese-built in the 1970s and now being refurbished under Chinese investment.",
+  p:[[-10.7,25.5],[-11.7,27.5],[-13.9,28.7],[-8.9,33.5],[-6.82,39.29]]},
+ {n:"Pilbara iron ore lines",r:"Australia",note:"Private heavy-haul railways from the Newman and Tom Price mines to Port Hedland and Dampier \u2014 the highest-tonnage freight system on earth.",
+  p:[[-23.4,119.7],[-22.0,119.0],[-20.31,118.58]]},
+ {n:"Caraj\u00e1s railway",r:"Brazil",note:"Vale's line from the Caraj\u00e1s iron ore complex to Ponta da Madeira on the Atlantic.",
+  p:[[-6.1,-50.2],[-4.5,-47.5],[-2.57,-44.37]]}
+];
+
+var PIPES = [
+ // --- oil ---
+ {n:"Druzhba pipeline",k:"oil",note:"Soviet-era crude line from the Volga region into central Europe. Flows to Poland and Germany have largely stopped since 2022; the southern leg to Hungary and Slovakia still runs.",
+  p:[[54.9,52.3],[53.2,50.2],[53.3,34.4],[52.0,29.2],[52.1,23.7],[53.1,14.3]]},
+ {n:"ESPO pipeline",k:"oil",note:"Eastern Siberia-Pacific Ocean. Russia's pivot line east \u2014 crude to Daqing in China and to Kozmino for seaborne export to Asia.",
+  p:[[55.9,98.0],[54.0,124.0],[50.3,127.5],[46.6,125.0]]},
+ {n:"Trans-Alaska Pipeline",k:"oil",note:"Prudhoe Bay to Valdez. The only route for North Slope crude.",
+  p:[[70.3,-148.4],[64.8,-147.7],[61.1,-146.3]]},
+ {n:"Keystone system",k:"oil",note:"Alberta oil sands crude south to Nebraska, Cushing and the Gulf refineries.",
+  p:[[52.7,-111.3],[49.5,-104.0],[40.0,-97.5],[35.98,-96.8],[29.9,-93.9]]},
+ {n:"Trans Mountain",k:"oil",note:"Edmonton to Burnaby \u2014 the only existing pipeline giving Alberta crude direct Pacific tidewater access. Expansion completed 2024.",
+  p:[[53.5,-113.5],[50.7,-120.3],[49.3,-123.0]]},
+ {n:"Enbridge Mainline",k:"oil",note:"The largest crude export system out of Canada, running to Midwest US refineries.",
+  p:[[53.5,-113.5],[50.4,-104.6],[46.7,-92.1],[42.97,-82.4]]},
+ {n:"Baku-Tbilisi-Ceyhan",k:"oil",note:"Caspian crude to the Mediterranean, deliberately routed to bypass both Russia and Hormuz.",
+  p:[[40.4,49.9],[41.7,44.8],[37.0,35.8]]},
+ // --- gas ---
+ {n:"Power of Siberia",k:"gas",note:"Russian gas east to China, online since 2019 \u2014 the main alternative market after European demand collapsed.",
+  p:[[60.0,120.0],[50.3,127.5],[46.6,125.0],[41.8,123.4]]},
+ {n:"Nord Stream 1 & 2",k:"gas",note:"Baltic seabed lines from Vyborg to Greifswald. Non-operational since the 2022 sabotage \u2014 shown because their absence is what reshaped European gas.",
+  p:[[60.7,28.7],[59.5,22.0],[56.0,17.0],[54.1,13.4]]},
+ {n:"Yamal-Europe",k:"gas",note:"Russian gas via Belarus and Poland to Germany. Largely idle since 2022.",
+  p:[[57.0,34.9],[53.9,27.6],[52.2,21.0],[52.3,14.6]]},
+ {n:"TurkStream",k:"gas",note:"Black Sea seabed line to Turkey and southeastern Europe \u2014 now the main surviving Russian gas route into Europe.",
+  p:[[44.9,37.3],[43.0,32.0],[41.6,28.1],[42.7,26.0]]},
+ {n:"Central Asia-China gas",k:"gas",note:"Turkmen gas east through Uzbekistan and Kazakhstan into Xinjiang \u2014 China's largest overland gas import route.",
+  p:[[39.1,63.6],[42.3,69.6],[44.2,80.4],[43.8,87.6]]},
+ {n:"West-East Gas Pipeline",k:"gas",note:"Xinjiang gas to Shanghai \u2014 the backbone of China's domestic gas network.",
+  p:[[41.0,84.2],[43.8,87.6],[38.5,99.0],[34.3,108.9],[31.2,121.5]]},
+ {n:"Coastal GasLink",k:"gas",note:"Montney gas from northeastern BC to the LNG Canada terminal at Kitimat \u2014 the link that opened a Pacific export route for Canadian gas in 2025.",
+  p:[[55.8,-120.2],[53.9,-122.7],[54.05,-128.65]]},
+ // --- proposed ---
+ {n:"Alberta-Churchill corridor (PROPOSED)",k:"proposed",note:"A recurring proposal to pipe Alberta oil or gas northeast to Hudson Bay for shipment to Europe. NEVER BUILT. The obstacles are structural: a short ice-free season, a single fragile rail line, no port infrastructure at scale, and unresolved Indigenous consultation and environmental approvals. Shown as a concept, not infrastructure.",
+  p:[[53.5,-113.5],[52.1,-106.6],[53.8,-101.3],[58.77,-94.17]]}
+];
+
+var railLayer = mapAvailable ? L.layerGroup() : noopLayer;
+var pipeLayer = mapAvailable ? L.layerGroup() : noopLayer;
+
+function drawCorridors(){
+  if(!mapAvailable) return;
+  railLayer.clearLayers();
+  pipeLayer.clearLayers();
+  var railCol = isLight ? '#4a5c6e' : '#9fb3c8';
+  RAIL.forEach(function(r){
+    var line = L.polyline(r.p, {color:railCol, weight:2, opacity:.75, dashArray:'1,5', lineCap:'round'}).addTo(railLayer);
+    line.bindPopup('<div class="pp-t">'+r.n+'</div><div class="pp-s">'+r.r+' &middot; rail corridor</div>'+
+      '<div style="font-size:11px;color:'+TC('#b9c6d3')+';max-width:250px">'+r.note+'</div>'+
+      '<div style="font-size:9.5px;color:'+TC('#c9d6e2')+';margin-top:5px;font-style:italic">Schematic route \u2014 drawn through major waypoints, not surveyed geometry.</div>');
+  });
+  PIPES.forEach(function(p){
+    var col = p.k==='oil' ? TC('#e8a15c') : p.k==='gas' ? TC('#6fb7e8') : TC('#c9d6e2');
+    var dash = p.k==='proposed' ? '2,7' : null;
+    var line = L.polyline(p.p, {color:col, weight: p.k==='proposed'?2:2.5, opacity: p.k==='proposed'?.6:.8, dashArray:dash, lineCap:'round'}).addTo(pipeLayer);
+    var label = p.k==='oil' ? 'crude oil pipeline' : p.k==='gas' ? 'natural gas pipeline' : 'proposed corridor \u2014 not built';
+    line.bindPopup('<div class="pp-t">'+p.n+'</div><div class="pp-s">'+label+'</div>'+
+      '<div style="font-size:11px;color:'+TC('#b9c6d3')+';max-width:250px">'+p.note+'</div>'+
+      '<div style="font-size:9.5px;color:'+TC('#c9d6e2')+';margin-top:5px;font-style:italic">Schematic route \u2014 drawn through major waypoints, not surveyed geometry.</div>');
+  });
+}
+if (mapAvailable) drawCorridors();
 
 
 
@@ -770,11 +1141,11 @@ var CAT_VIS = {
   nuclear:{c:'#e8c94a',g:'\u269B'}, industrial:{c:'#d98a5a',g:'\u2692'}, energy:{c:'#f0554a',g:'\u25C8'},
   other:{c:'#8ea0b3',g:'\u25CB'}
 };
-function catGlyph(cat){var v=CAT_VIS[cat]||CAT_VIS.other;return '<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;background:'+v.c+'22;color:'+v.c+';font-size:12px;flex-shrink:0;margin-right:2px">'+v.g+'</span>';}
+function catGlyph(cat){var v=CAT_VIS[cat]||CAT_VIS.other;var vc=TC(v.c);return '<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;background:'+vc+'22;color:'+vc+';font-size:12px;flex-shrink:0;margin-right:2px">'+v.g+'</span>';}
 
 function riskColorVar(lvl){
   if (typeof isLight !== 'undefined' && isLight){
-    return lvl==='sev'?'#c8342a':lvl==='high'?'#b56f10':lvl==='mod'?'#8f7505':'#12855a';
+    return lvl==='sev'?'#b82d23':lvl==='high'?'#9c5f0c':lvl==='mod'?'#7d6504':'#0f7a52';
   }
   return lvl==='sev'?'#f0554a':lvl==='high'?'#f0a13c':lvl==='mod'?'#e8c94a':'#4fc98a';
 }
@@ -811,6 +1182,14 @@ function toggleLayer(which){
     var el2 = document.getElementById('layer-ports');
     if(M.hasLayer(portLayer)){ M.removeLayer(portLayer); el2.classList.remove('on'); }
     else { portLayer.addTo(M); el2.classList.add('on'); }
+  } else if(which==='rail'){
+    var el3 = document.getElementById('layer-rail');
+    if(M.hasLayer(railLayer)){ M.removeLayer(railLayer); el3.classList.remove('on'); }
+    else { railLayer.addTo(M); el3.classList.add('on'); }
+  } else if(which==='pipe'){
+    var el4 = document.getElementById('layer-pipe');
+    if(M.hasLayer(pipeLayer)){ M.removeLayer(pipeLayer); el4.classList.remove('on'); }
+    else { pipeLayer.addTo(M); el4.classList.add('on'); }
   }
 }
 
@@ -872,7 +1251,7 @@ function selectCountry(name){
     '<div class="actionrow"><div class="actbtn" id="actA" onclick="copyCountryBrief(\''+name.replace(/'/g,"\\'")+'\')">Copy Country Brief</div></div>';
   prodLayer.clearLayers();
   if(mapAvailable){
-    var circle = L.circleMarker([d.lat,d.lng],{radius:16,color:'#e8a15c',weight:2,fillColor:'#e8a15c',fillOpacity:.25}).addTo(prodLayer);
+    var circle = L.circleMarker([d.lat,d.lng],{radius:16,color:TC('#e8a15c'),weight:2,fillColor:TC('#e8a15c'),fillOpacity:.25}).addTo(prodLayer);
     circle.bindPopup('<div class="pp-t">'+name+'</div><div class="pp-s">'+d.entries.length+' tracked commodities</div>');
     goTo(d.lat, d.lng, 3);
   }
@@ -917,7 +1296,7 @@ function renderUSGaps(filterText){
   }).sort(function(a,b){ return b.usRel - a.usRel || b.advShare - a.advShare; });
   var note = '<div style="padding:8px 16px 10px;font-size:10.5px;color:var(--ink-faint);line-height:1.5;border-bottom:1px solid var(--line)">Net import reliance per USGS Mineral Commodity Summaries 2026. "Rival-controlled" is an approximate US-policy-lens estimate (China + Russia + high-risk jurisdictions) — a framing used in US policy debate, not a neutral market category.</div>';
   host.innerHTML = note + list.map(function(m){
-    var advCol = m.advShare>=70 ? '#f0554a' : m.advShare>=40 ? '#f0a13c' : '#e8c94a';
+    var advCol = TC(m.advShare>=70 ? '#f0554a' : m.advShare>=40 ? '#f0a13c' : '#e8c94a');
     return '<div class="mrow'+(activeMineral===m.id?' active':'')+'" onclick="selectMineral(\''+m.id+'\')">'+
       '<div class="dot" style="background:'+advCol+'"></div>'+
       '<div><div class="mname">'+m.n+'</div><div class="mmeta">US share of world output: '+m.usShare+'%</div></div>'+
@@ -979,18 +1358,20 @@ function drawProducers(m){
     var r = riskOf(m);
     var col = riskColorVar(r.lvl);
     var circle = L.circleMarker([p.lat,p.lng],{radius:radius,color:col,weight:2,fillColor:col,fillOpacity:.28}).addTo(prodLayer);
-    circle.bindPopup('<div class="pp-t">'+p.c+'</div><div class="pp-s">'+m.n+'</div><div class="pp-r"><span class="pp-l">Share of supply</span><span class="pp-v">'+p.p+'%</span></div>');
+    var co = companyFor(m.id, p.c);
+    circle.bindPopup('<div class="pp-t">'+p.c+'</div><div class="pp-s">'+m.n+'</div><div class="pp-r"><span class="pp-l">Share of supply</span><span class="pp-v">'+p.p+'%</span></div>'+
+      (co ? '<div style="font-size:10.5px;color:'+TC('#b9c6d3')+';margin-top:4px;max-width:220px"><b>Main operator:</b> '+co+'</div>' : ''));
   });
   if(m.proc){
     m.proc.forEach(function(p){
-      var ic = L.divIcon({className:'',html:'<div style="width:9px;height:9px;border:1.5px dashed #e8a15c;border-radius:50%"></div>',iconSize:[9,9],iconAnchor:[4,4]});
+      var ic = L.divIcon({className:'',html:'<div style="width:9px;height:9px;border:1.5px dashed '+TC('#e8a15c')+';border-radius:50%"></div>',iconSize:[9,9],iconAnchor:[4,4]});
       L.marker([p.lat,p.lng],{icon:ic}).addTo(prodLayer).bindPopup('<div class="pp-t">'+p.c+'</div><div class="pp-s">Midstream processing — '+m.n+'</div><div class="pp-r"><span class="pp-l">Processing share</span><span class="pp-v">'+p.p+'%</span></div>');
     });
   }
   if(m.reserve){
     m.reserve.forEach(function(rv){
-      var circle = L.circleMarker([rv.lat,rv.lng],{radius:11,color:'#6fb7e8',weight:2,dashArray:'3,3',fillColor:'#6fb7e8',fillOpacity:.08}).addTo(prodLayer);
-      circle.bindPopup('<div class="pp-t">'+rv.c+'</div><div class="pp-s">Undeveloped reserve — not yet in market supply</div><div style="font-size:11px;color:#b9c6d3;max-width:220px">'+rv.note+'</div>');
+      var circle = L.circleMarker([rv.lat,rv.lng],{radius:11,color:TC('#6fb7e8'),weight:2,dashArray:'3,3',fillColor:TC('#6fb7e8'),fillOpacity:.08}).addTo(prodLayer);
+      circle.bindPopup('<div class="pp-t">'+rv.c+'</div><div class="pp-s">Undeveloped reserve — not yet in market supply</div><div style="font-size:11px;color:'+TC('#b9c6d3')+';max-width:220px">'+rv.note+'</div>');
     });
   }
   if(m.prod.length) goTo(m.prod[0].lat, m.prod[0].lng, 3);
@@ -1004,8 +1385,11 @@ function renderDetail(m){
   var maxP = Math.max.apply(null, m.prod.map(function(p){return p.p;}));
 
   var bars = m.prod.map(function(p){
+    var co = companyFor(m.id, p.c);
     return '<div class="bar-row"><div class="bar-top"><span class="bar-c">'+p.c+'</span><span class="bar-v">'+p.p+'%</span></div>'+
-      '<div class="bar-track"><div class="bar-fill" style="width:'+(p.p/maxP*100)+'%"></div></div></div>';
+      '<div class="bar-track"><div class="bar-fill" style="width:'+(p.p/maxP*100)+'%"></div></div>'+
+      (co ? '<div style="font-size:10px;color:var(--ink-faint);margin-top:2px;line-height:1.35">'+co+'</div>' : '')+
+      '</div>';
   }).join('');
 
   var chkTags = (m.chk||[]).map(function(k){return '<div class="chk-tag">&#9670; '+CHK[k].n+'</div>';}).join('') || '<div class="chk-tag" style="opacity:.5">No major chokepoint exposure</div>';
@@ -1036,10 +1420,10 @@ function renderDetail(m){
     (typeof m.usRel==='number' ? (
       '<div class="sectiontitle" style="padding-left:0">US Supply Security Gap</div>'+
       '<div class="gauge-label">US Net Import Reliance</div>'+
-      '<div class="gauge"><div class="gauge-fill" style="width:'+m.usRel+'%;background:'+(m.usRel>=90?'#f0554a':m.usRel>=70?'#f0a13c':'#e8c94a')+'"></div></div>'+
+      '<div class="gauge"><div class="gauge-fill" style="width:'+m.usRel+'%;background:'+TC(m.usRel>=90?'#f0554a':m.usRel>=70?'#f0a13c':'#e8c94a')+'"></div></div>'+
       '<div class="gauge-note">'+m.usRel+'% imported \u00b7 US produces '+m.usShare+'% of world supply</div>'+
       '<div class="gauge-label">Rival-Controlled Share (approx.)</div>'+
-      '<div class="gauge"><div class="gauge-fill" style="width:'+m.advShare+'%;background:'+(m.advShare>=70?'#f0554a':m.advShare>=40?'#f0a13c':'#e8c94a')+'"></div></div>'+
+      '<div class="gauge"><div class="gauge-fill" style="width:'+m.advShare+'%;background:'+TC(m.advShare>=70?'#f0554a':m.advShare>=40?'#f0a13c':'#e8c94a')+'"></div></div>'+
       '<div class="gauge-note">'+m.advNote+'</div>'+
       '<div class="dp-src" style="border-left-color:rgba(240,161,60,.4)"><b>Domestic status:</b> '+m.domNote+'</div>'
     ) : '')+
@@ -1096,7 +1480,7 @@ function copyRiskBrief(id){
   var reserveTxt = (m.reserve && m.reserve.length) ? "\nUndeveloped reserves (not yet in market supply): "+m.reserve.map(function(rv){return rv.c;}).join(', ') : "";
   var txt = "SUPPLY RISK BRIEF — "+m.n+"\n"+
     "Concentration risk: "+r.label+" (top producer "+m.prod[0].c+" at "+m.prod[0].p+"%)\n"+
-    "Producer breakdown: "+m.prod.map(function(p){return p.c+" "+p.p+"%";}).join(', ')+"\n"+
+    "Producer breakdown: "+m.prod.map(function(p){var co=companyFor(m.id,p.c);return p.c+" "+p.p+"%"+(co?" ("+co+")":"");}).join(', ')+"\n"+
     (m.proc? "Midstream processing concentration: "+m.proc.map(function(p){return p.c+" "+p.p+"%";}).join(', ')+"\n" : "")+
     reserveTxt+"\n"+
     "Chokepoint exposure: "+chk+"\n"+
