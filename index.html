@@ -90,6 +90,8 @@ body.light .leaflet-tile-pane{filter:none}
 .dp-h{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
 .dp-name{font-size:16px;font-weight:700;color:var(--ink);font-family:var(--sans)}
 .dp-cat{font-size:10.5px;color:var(--ink-dim);font-family:var(--mono);margin-top:2px}
+.dp-back{display:inline-flex;align-items:center;gap:4px;margin-bottom:12px;padding:8px 12px;border-radius:8px;background:var(--brand-dim);border:1px solid var(--brand);color:var(--brand);cursor:pointer;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.3px}
+.dp-back:hover{background:var(--brand);color:#fff}
 .dp-close{width:20px;height:20px;border-radius:5px;background:rgba(240,85,74,.1);border:1px solid rgba(240,85,74,.25);color:var(--sev);cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center}
 .badges{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
 .badge{padding:3px 8px;border-radius:4px;font-size:9.5px;font-weight:700;font-family:var(--mono);letter-spacing:.4px;text-transform:uppercase}
@@ -353,7 +355,7 @@ body.light #themebtn{background:rgba(255,255,255,.96); box-shadow:0 4px 16px rgb
 
   <div class="chips" id="catchips"></div>
 
-  <div class="chips" style="border-top:1px solid var(--line);padding-top:8px">
+  <div class="chips" id="layerchips" style="border-top:1px solid var(--line);padding-top:8px">
     <div class="chip on" id="layer-chk" onclick="toggleLayer('chk')">&#9670; Chokepoints</div>
     <div class="chip" id="layer-ports" onclick="toggleLayer('ports')">&#9679; Ports &amp; Terminals</div>
     <div class="chip" id="layer-rail" onclick="toggleLayer('rail')">&#9552; Rail Corridors</div>
@@ -1422,7 +1424,8 @@ function selectCountry(name){
   var dp = document.getElementById('dp');
   dp.classList.add('active');
   dp.innerHTML =
-    '<div class="dp-h"><div><div class="dp-name">'+name+'</div><div class="dp-cat">Country Dependency Profile</div></div><button class="dp-close" onclick="closeDetail()">&#10005;</button></div>'+
+    '<button class="dp-back" onclick="closeDetail()">&#8249; Back</button>'+
+    '<div class="dp-h"><div><div class="dp-name">'+name+'</div><div class="dp-cat">Country Dependency Profile</div></div></div>'+
     '<div class="badges"><span class="badge '+bcls+'">'+st.t+'</span><span class="badge b-non">'+d.leverage+' high/severe commodities</span></div>'+
     '<div class="dp-uses" style="font-style:italic">Stability tiering is an illustrative placeholder for demo purposes — swap in a licensed index (e.g. Fragile States Index, Verisk Maplecroft) before relying on it.</div>'+
     '<div class="sectiontitle" style="padding-left:0">Tracked Commodities</div>'+rows+
@@ -1520,12 +1523,20 @@ function setMode(m){
 
 function selectMineral(id){
   activeMineral = id;
-  if(window.innerWidth < 769 && typeof applySheet === 'function' && sheetState === 'full'){ applySheet('half'); }
   var m = MINERALS.find(function(x){return x.id===id;});
-  if(currentView==='us') renderUSGaps(document.getElementById('si').value);
-  else renderList(document.getElementById('si').value);
   renderDetail(m);
   drawProducers(m);
+  // Hide the browsing list + filters; show the detail as a full-height panel.
+  var lt = document.getElementById('listtitle'); if(lt) lt.style.display='none';
+  var ml = document.getElementById('mlist'); if(ml) ml.style.display='none';
+  var chipsWrap = document.getElementById('catchips'); if(chipsWrap) chipsWrap.parentElement.style.display='none';
+  var lyr = document.getElementById('layerchips'); if(lyr) lyr.style.display='none';
+  var sb = document.querySelector('#sp .sbox'); if(sb) sb.style.display='none';
+  var mb2 = document.getElementById('modebar2'); if(mb2) mb2.style.display='none';
+  // scroll the panel back to the top so the mineral header is visible immediately
+  var sc = document.querySelector('#sp .scroll'); if(sc) sc.scrollTop = 0;
+  // on mobile make sure the sheet is at least half-open so the panel is readable
+  if(window.innerWidth < 769 && typeof applySheet === 'function' && sheetState === 'peek'){ applySheet('half'); }
 }
 
 function drawProducers(m){
@@ -1596,7 +1607,8 @@ function renderDetail(m){
   }
 
   dp.innerHTML =
-    '<div class="dp-h"><div><div class="dp-name">'+m.n+'</div><div class="dp-cat">'+CATS.find(function(c){return c.id===m.cat;}).n+'</div></div><button class="dp-close" onclick="closeDetail()">&#10005;</button></div>'+
+    '<button class="dp-back" onclick="closeDetail()">&#8249; Back to all minerals</button>'+
+    '<div class="dp-h"><div><div class="dp-name">'+m.n+'</div><div class="dp-cat">'+CATS.find(function(c){return c.id===m.cat;}).n+'</div></div></div>'+
     '<div class="badges"><span class="badge '+bcls+'">'+r.label+' Concentration</span><span class="badge '+(m.usgs?'b-usgs':'b-non')+'">'+(m.usgs?'USGS 2025 Critical List':'Not on USGS List')+'</span>'+
     (m.verified?'<span class="badge b-low">&#10003; '+m.verified+' verified</span>':'<span class="badge b-non">Spot-checked — verify before citing</span>')+'</div>'+
     '<div class="dp-uses">'+m.uses+'</div>'+
@@ -1628,6 +1640,14 @@ function renderDetail(m){
 function closeDetail(){
   document.getElementById('dp').classList.remove('active');
   activeMineral=null; activeCountry=null; prodLayer.clearLayers();
+  // Restore the browsing list + filters.
+  var lt = document.getElementById('listtitle'); if(lt) lt.style.display='';
+  var ml = document.getElementById('mlist'); if(ml) ml.style.display='';
+  var chipsWrap = document.getElementById('catchips'); if(chipsWrap) chipsWrap.parentElement.style.display='';
+  var lyr = document.getElementById('layerchips'); if(lyr) lyr.style.display='';
+  var sb = document.querySelector('#sp .sbox'); if(sb) sb.style.display='';
+  var mb2 = document.getElementById('modebar2'); if(mb2) mb2.style.display='';
+  var sc = document.querySelector('#sp .scroll'); if(sc) sc.scrollTop = 0;
   var q = document.getElementById('si').value;
   if(currentView==='minerals') renderList(q);
   else if(currentView==='countries') renderCountries(q);
