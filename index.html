@@ -283,6 +283,7 @@ body.light #legend span[style*="solid #e8a15c"]{border-top-color:#94530f!importa
 body.light #legend span[style*="solid #6fb7e8"]{border-top-color:#0f5c86!important}
 body.light #legend span[style*="dashed #c9d6e2"]{border-top-color:#7b8b9c!important}
 body.light #legend span[style*="dashed #e8c94a"]{border-top-color:#7d6504!important}
+body.light #legend span[style*="dashed #e05c9e"]{border-top-color:#9c2062!important}
 
 body.light .chk-icon-label{background:rgba(255,255,255,.94);border:1px solid rgba(28,45,66,.15);font-weight:600}
 body.light #legend span[style*="#e8c94a"]{color:#7d6504!important}
@@ -350,6 +351,7 @@ body.light #themebtn{background:rgba(255,255,255,.96); box-shadow:0 4px 16px rgb
     <div class="chip" id="layer-rail" onclick="toggleLayer('rail')">&#9552; Rail Corridors</div>
     <div class="chip" id="layer-pipe" onclick="toggleLayer('pipe')">&#9472; Pipelines</div>
     <div class="chip" id="layer-uranium" onclick="toggleLayer('uranium')">&#9762; Nuclear / Class 7</div>
+    <div class="chip" id="layer-bri" onclick="toggleLayer('bri')">&#9679; Belt &amp; Road</div>
   </div>
 
   <div class="scroll">
@@ -382,7 +384,7 @@ body.light #themebtn{background:rgba(255,255,255,.96); box-shadow:0 4px 16px rgb
     <div class="lg-row"><span class="lg-sym"><span style="width:16px;height:0;border-top:2.5px solid #e8a15c;display:inline-block"></span></span><span>Crude oil pipeline</span></div>
     <div class="lg-row"><span class="lg-sym"><span style="width:16px;height:0;border-top:2.5px solid #6fb7e8;display:inline-block"></span></span><span>Natural gas pipeline</span></div>
     <div class="lg-row"><span class="lg-sym"><span style="width:16px;height:0;border-top:2px dashed #c9d6e2;display:inline-block"></span></span><span>Proposed &mdash; not built</span></div>
-    <div class="lg-row"><span class="lg-sym"><span style="width:16px;height:0;border-top:2.5px dashed #e8c94a;display:inline-block"></span></span><span>Nuclear / Class 7 corridor</span></div><div class="lg-row"><span class="lg-sym"><span style="width:9px;height:9px;border-radius:50%;background:#e8c94a55;border:1.5px solid #e8c94a;display:inline-block"></span></span><span>Nuclear-capable port</span></div><div class="lg-sec">Risk colour</div>
+    <div class="lg-row"><span class="lg-sym"><span style="width:16px;height:0;border-top:2.5px dashed #e8c94a;display:inline-block"></span></span><span>Nuclear / Class 7 corridor</span></div><div class="lg-row"><span class="lg-sym"><span style="width:9px;height:9px;border-radius:50%;background:#e8c94a55;border:1.5px solid #e8c94a;display:inline-block"></span></span><span>Nuclear-capable port</span></div><div class="lg-row"><span class="lg-sym"><span style="width:16px;height:0;border-top:2.5px dashed #e05c9e;display:inline-block"></span></span><span>Belt &amp; Road corridor / port</span></div><div class="lg-sec">Risk colour</div>
     <div class="lg-row"><span class="lg-sym"><span style="width:9px;height:9px;border-radius:50%;background:#f0554a;display:inline-block"></span></span><span>Severe &mdash; top producer &ge;50%</span></div>
     <div class="lg-row"><span class="lg-sym"><span style="width:9px;height:9px;border-radius:50%;background:#f0a13c;display:inline-block"></span></span><span>High &ge;35% &nbsp;&middot;&nbsp; <span style="color:#e8c94a">Moderate &ge;20%</span></span></div>
     <div class="lg-row"><span class="lg-sym"><span style="width:9px;height:9px;border-radius:50%;background:#4fc98a;display:inline-block"></span></span><span>Low &mdash; diversified supply</span></div>
@@ -834,6 +836,7 @@ function applyTheme(light){
   if (typeof drawPorts === 'function' && M.hasLayer(portLayer)) drawPorts();
   if (typeof drawCorridors === 'function' && (M.hasLayer(railLayer)||M.hasLayer(pipeLayer))) drawCorridors();
   if (typeof drawUranium === 'function' && M.hasLayer(uraniumLayer)) drawUranium();
+  if (typeof drawBRI === 'function' && M.hasLayer(briLayer)) drawBRI();
   if (typeof activeMineral !== 'undefined' && activeMineral) {
     var m = MINERALS.find(function(x){return x.id===activeMineral;});
     if (m) drawProducers(m);
@@ -1074,6 +1077,8 @@ if (mapAvailable) {
 // geometry. They show which corridor connects which places and why it matters; they
 // are not accurate to the kilometre and should not be used for anything operational.
 var RAIL = [
+ {n:"Interoceanic Corridor of Tehuantepec (CIIT)",r:"Mexico",note:"Mexico\u2019s ~300km \u2018dry canal\u2019 \u2014 a rail land-bridge from Salina Cruz on the Pacific to Coatzacoalcos on the Gulf, pitched as a Panama Canal alternative. Unlike the proposed bypasses, this one runs: the main Line Z has moved commercial and automotive freight since December 2023 (Hyundai shipped 900 vehicles across in ~9 hours), with full network completion targeted for mid-2026. Cargo unloads, crosses by rail, reloads \u2014 so it competes for niche and nearshoring cargo rather than replacing the canal wholesale. A December 2025 derailment that killed 14 was a setback as it scales.",
+  p:[[16.17,-95.20],[16.6,-95.0],[17.4,-94.6],[18.14,-94.43]]},
  {n:"Trans-Siberian Railway",r:"Russia",note:"Moscow to Vladivostok \u2014 the spine of Russian bulk freight and the land route for Russian metals and coal to Pacific ports.",
   p:[[55.75,37.6],[56.8,60.6],[55.0,73.4],[55.0,82.9],[56.0,92.9],[52.3,104.3],[52.0,113.5],[48.5,135.1],[43.1,131.9]]},
  {n:"China-Europe Railway Express",r:"China / Kazakhstan / EU",note:"The Belt and Road rail corridor. Chongqing to Duisburg via the Alashankou/Dostyk border crossing \u2014 faster than sea, cheaper than air, and it bypasses Malacca and Suez entirely.",
@@ -1137,6 +1142,58 @@ var PIPES = [
  {n:"Alberta-Churchill corridor (PROPOSED)",k:"proposed",note:"A recurring proposal to pipe Alberta oil or gas northeast to Hudson Bay for shipment to Europe. NEVER BUILT. The obstacles are structural: a short ice-free season, a single fragile rail line, no port infrastructure at scale, and unresolved Indigenous consultation and environmental approvals. Shown as a concept, not infrastructure.",
   p:[[53.5,-113.5],[52.1,-106.6],[53.8,-101.3],[58.77,-94.17]]}
 ];
+
+
+// ---------- BELT & ROAD (mineral / chokepoint-relevant links only) ----------
+// Deliberately NOT a full BRI map. Only corridors that carry critical minerals or
+// deliberately bypass a maritime chokepoint. Schematic routes, not surveyed geometry.
+var BRI = [
+ {n:"Kanal \u0130stanbul (PROPOSED \u2014 stalled 2026)",k:"proposed",note:"A ~45km artificial canal from the Sea of Marmara (K\u00fc\u00e7\u00fckcekmece Lake) to the Black Sea, running parallel to the Bosphorus on Istanbul\u2019s European side \u2014 which would effectively cut off western Istanbul as an island. Erdogan\u2019s $15bn project to bypass the congested Bosphorus and, critically, to capture toll revenue outside the Montreux Convention, which caps what Turkey can charge on the Strait itself. As of 2026 it is not actively being advanced and not officially cancelled: excavation hasn\u2019t begun, though linked bridges and land development have. Environmental studies warn of salinity and water-system disruption between the Black Sea and Marmara.",
+  p:[[40.98,28.68],[41.13,28.72],[41.33,28.78]]},
+ {n:"Thailand Land Bridge (PROPOSED \u2014 shelved Jul 2026)",k:"proposed",note:"A 90km overland corridor across the Kra Isthmus \u2014 deep-water ports at Ranong (Andaman) and Chumphon (Gulf of Thailand) linked by road, rail and pipelines \u2014 pitched as a way to bypass the Malacca Strait. Revived and accelerated in early 2026 citing the Hormuz crisis, then shelved again in late July 2026 after a feasibility study found it commercially unviable with major environmental risks. A land bridge, not a canal: cargo unloads, crosses by land, reloads. Its real significance is as bargaining leverage over Malacca rather than a true replacement.",
+  p:[[9.95,98.63],[10.5,99.2],[10.5,99.18]]},
+ {n:"Nicaragua Canal (PROPOSED \u2014 in limbo 2026)",k:"proposed",note:"A recurring proposal for an interoceanic canal to rival Panama and take the largest ships Panama can\u2019t. The Chinese (HKND) concession was cancelled in 2024; Ortega revived it in 2025 with a new China/Russia-courting route (Bluefields on the Caribbean to Corinto on the Pacific, avoiding Lake Nicaragua); in June 2026 the concession was withdrawn and the project put into state administration. Never built \u2014 blocked repeatedly by financing, environmental opposition, and protests. Shown as a concept, not infrastructure.",
+  p:[[12.0,-83.76],[12.4,-85.0],[12.48,-87.18]]},
+ {n:"China-Pakistan Economic Corridor (CPEC)",k:"land+port",note:"Kashgar to Gwadar port on the Arabian Sea. Its strategic purpose is a Malacca bypass \u2014 an overland route that lets Gulf oil and trade reach western China without transiting the Malacca and South China Sea chokepoints. Gwadar is Chinese-operated.",
+  p:[[39.5,76.0],[35.9,74.3],[33.6,73.0],[30.2,67.0],[27.7,66.6],[25.1,62.3]]},
+ {n:"China-Myanmar Economic Corridor",k:"land+port",note:"Kunming to Kyaukphyu port on the Bay of Bengal, with oil and gas pipelines already running. Another Malacca bypass \u2014 Middle East and African crude landed on Myanmar's coast and piped overland into Yunnan.",
+  p:[[25.0,102.7],[24.8,98.9],[21.9,96.1],[19.8,93.5]]},
+ {n:"Middle Corridor (Trans-Caspian)",k:"land",note:"The China-Europe route that avoids Russia: through Kazakhstan, across the Caspian, through the Caucasus to Turkey and Europe. Increasingly important for moving Central Asian minerals \u2014 and it connects to the Kazakh uranium corridors.",
+  p:[[43.8,87.6],[43.2,76.9],[47.1,51.9],[40.4,49.9],[41.7,44.8],[39.9,32.9],[41.0,29.0]]},
+ {n:"China-Central Asia (Line D / gas + rail)",k:"land",note:"Xinjiang into Kazakhstan, Uzbekistan, Turkmenistan \u2014 the corridor for Central Asian gas, uranium and base metals into China via the Alashankou/Khorgos crossings.",
+  p:[[43.8,87.6],[42.3,69.6],[39.7,64.4],[37.9,58.4]]},
+ {n:"Gwadar (port node)",k:"port",note:"Chinese-operated deep-water port in Pakistan \u2014 the maritime anchor of CPEC and a potential Indian Ocean naval foothold. Its whole reason for being is to shorten China's Gulf supply line and skirt Malacca.",
+  p:null,lat:25.12,lng:62.32},
+ {n:"Kyaukphyu (port node)",k:"port",note:"Chinese-invested port and SEZ on Myanmar's coast \u2014 landfall for the oil/gas pipelines into Yunnan.",
+  p:null,lat:19.43,lng:93.55},
+ {n:"Hambantota (port node)",k:"port",note:"Sri Lankan port leased to China for 99 years after a debt default \u2014 the most-cited example of BRI port leverage, astride the Indian Ocean lanes between the Gulf and Malacca.",
+  p:null,lat:6.12,lng:81.10},
+ {n:"Piraeus (port node)",k:"port",note:"Greece's largest port, majority-owned by COSCO \u2014 the Mediterranean entry point of the Maritime Silk Road and the offload for goods heading into the Balkans and central Europe.",
+  p:null,lat:37.94,lng:23.64}
+];
+
+var briLayer = mapAvailable ? L.layerGroup() : noopLayer;
+
+function drawBRI(){
+  if(!mapAvailable) return;
+  briLayer.clearLayers();
+  var lineCol = TC('#e05c9e');   // magenta \u2014 distinct from rail(grey)/oil(amber)/gas(blue)/uranium(yellow)
+  BRI.forEach(function(b){
+    if(b.p){
+      var isProp = b.k==='proposed';
+      var line = L.polyline(b.p, {color: isProp ? TC('#c9d6e2') : lineCol, weight: isProp?2:2.5, opacity: isProp?.6:.8, dashArray: isProp?'2,7':'8,4', lineCap:'round'}).addTo(briLayer);
+      line.bindPopup('<div class="pp-t">'+b.n+'</div><div class="pp-s">Belt &amp; Road corridor</div>'+
+        '<div style="font-size:11px;color:'+TC('#b9c6d3')+';max-width:250px">'+b.note+'</div>'+
+        '<div style="font-size:9.5px;color:'+TC('#c9d6e2')+';margin-top:5px;font-style:italic">Schematic route \u2014 waypoints, not surveyed geometry.</div>');
+    } else {
+      var mc = TC('#e05c9e');
+      L.circleMarker([b.lat,b.lng],{radius:6,color:mc,weight:2,fillColor:mc,fillOpacity:.4}).addTo(briLayer).bindPopup(
+        '<div class="pp-t">'+b.n.replace(' (port node)','')+'</div><div class="pp-s">BRI port \u00b7 China-invested / operated</div>'+
+        '<div style="font-size:11px;color:'+TC('#b9c6d3')+';max-width:230px;margin-top:3px">'+b.note+'</div>');
+    }
+  });
+}
+// lazy: drawn on first toggle
 
 var railLayer = mapAvailable ? L.layerGroup() : noopLayer;
 var pipeLayer = mapAvailable ? L.layerGroup() : noopLayer;
@@ -1282,6 +1339,10 @@ function toggleLayer(which){
     var el5 = document.getElementById('layer-uranium');
     if(M.hasLayer(uraniumLayer)){ M.removeLayer(uraniumLayer); el5.classList.remove('on'); }
     else { if(!uraniumLayer.getLayers().length) drawUranium(); uraniumLayer.addTo(M); el5.classList.add('on'); }
+  } else if(which==='bri'){
+    var el6 = document.getElementById('layer-bri');
+    if(M.hasLayer(briLayer)){ M.removeLayer(briLayer); el6.classList.remove('on'); }
+    else { if(!briLayer.getLayers().length) drawBRI(); briLayer.addTo(M); el6.classList.add('on'); }
   }
 }
 
