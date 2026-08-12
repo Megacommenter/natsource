@@ -1713,6 +1713,14 @@ renderList('');
 // --- Mobile bottom sheet ---
 var spEl = document.getElementById('sp');
 var tbEl = document.getElementById('tb');
+if (tbEl) {
+  tbEl.addEventListener('click', function(){
+    // Desktop: reopen the collapsed sidebar.
+    spEl.classList.remove('hide');
+    tbEl.style.display = 'none';
+    setTimeout(function(){ if(mapAvailable && M.invalidateSize){ M.invalidateSize(); } }, 320);
+  });
+}
 var gripLbl = document.getElementById('griplbl');
 var isMobile = function(){ return window.innerWidth < 769; };
 // states: 'peek' (collapsed), 'half' (default), 'full'
