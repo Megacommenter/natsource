@@ -46,7 +46,7 @@ body.light .leaflet-tile-pane{filter:none}
 
 #sp{position:fixed;top:0;left:0;width:min(380px,92vw);height:100vh;height:100dvh;background:linear-gradient(180deg,var(--panel),var(--panel2));z-index:1000;border-right:1px solid var(--line);display:flex;flex-direction:column;transition:transform .3s ease}
 #sp.hide{transform:translateX(-110%)}
-#sp .scroll{overflow-y:auto;flex:1}
+#sp .scroll{overflow-y:auto;flex:1;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y}
 #sp .scroll::-webkit-scrollbar{width:4px}
 #sp .scroll::-webkit-scrollbar-thumb{background:rgba(232,161,92,.25);border-radius:2px}
 
@@ -155,7 +155,7 @@ body.light .leaflet-tile-pane{filter:none}
   #sp{
     top:auto; bottom:0; left:0; right:0;
     width:100%; max-width:100%;
-    height:58vh; height:58dvh;
+    height:62vh; height:62dvh;
     border-right:none; border-top:1px solid rgba(232,161,92,.28);
     border-radius:16px 16px 0 0;
     box-shadow:0 -8px 32px rgba(0,0,0,.55);
@@ -163,8 +163,17 @@ body.light .leaflet-tile-pane{filter:none}
     transform:none !important;
   }
   #sp.hide{ transform:none !important; height:74px; }
-  #sp.full{ height:92vh; height:92dvh; }
-  #sp .scroll{ -webkit-overflow-scrolling:touch; }
+  #sp.full{ height:94vh; height:94dvh; }
+  #sp .scroll{ -webkit-overflow-scrolling:touch; overscroll-behavior:contain; touch-action:pan-y; }
+  #sp{ touch-action:pan-y; }
+  /* mobile: entire sheet body scrolls as one unit below the grip */
+  #sp{ display:flex; flex-direction:column; }
+  #sheetgrip{ flex-shrink:0; }
+  #sp .hdr, #sp .modebar, #sp .sbox, #sp .chips{ flex-shrink:0; }
+  #sp .scroll{ flex:1 1 auto; min-height:0; }
+  /* when collapsed (peek), hide everything but the grip */
+  #sp.hide .hdr, #sp.hide .modebar, #sp.hide .sbox, #sp.hide .chips, #sp.hide .scroll{ display:none; }
+
 
   /* drag handle */
   #sheetgrip{
@@ -190,7 +199,7 @@ body.light .leaflet-tile-pane{filter:none}
   #tb{ display:none !important; }
 
   /* map gets the top portion of the screen */
-  #map{ bottom:58vh; bottom:58dvh; }
+  #map{ bottom:38vh; bottom:38dvh; }
 
   #tk{ display:none; }
   .modebar{ padding:8px 12px; gap:5px; }
@@ -234,7 +243,8 @@ body.light{
   --sev:#c8342a; --high:#b56f10; --mod:#8f7505; --low:#12855a;
   --link:#12628f;
 }
-body.light .leaflet-container{background:#dfe5ec}
+body.light .leaflet-container{background:#e8edf2}
+body.light .leaflet-tile-pane{background:#e8edf2}
 body.light #sp{background:linear-gradient(180deg,#ffffff,#f5f7fa);box-shadow:0 0 24px rgba(20,40,60,.10)}
 body.light .leaflet-popup-content-wrapper,
 body.light .leaflet-popup-tip{background:#ffffff!important;color:#16212e!important;box-shadow:0 6px 24px rgba(20,40,60,.18)!important}
@@ -870,7 +880,7 @@ function goTo(lat, lng, zoom){
 var dk = null, usingFallbackTiles = false;
 function addTiles(url, attribution){
   if (dk) { M.removeLayer(dk); }
-  dk = L.tileLayer(url, {maxZoom:19, bounds:[[-85,-180],[85,180]]});
+  dk = L.tileLayer(url, {maxZoom:19, bounds:[[-85,-180],[85,180]], keepBuffer:6, updateWhenIdle:false, updateWhenZooming:false, crossOrigin:true});
   dk.addTo(M);
   var fails = 0;
   dk.on('tileerror', function(){
@@ -1617,11 +1627,16 @@ function applySheet(st){
   if(gripLbl) gripLbl.textContent = st==='peek' ? 'Tap to expand' : st==='half' ? 'Tap for full list' : 'Tap to shrink';
   var mapEl = document.getElementById('map');
   if(mapEl && isMobile()){
-    mapEl.style.bottom = st==='peek' ? '74px' : st==='full' ? '8vh' : '58vh';
+    mapEl.style.bottom = st==='peek' ? '74px' : st==='full' ? '6vh' : '38vh';
   } else if(mapEl){
     mapEl.style.bottom = '0';
   }
-  setTimeout(function(){ if(mapAvailable && M.invalidateSize) M.invalidateSize(); }, 320);
+  setTimeout(function(){
+    if(mapAvailable && M.invalidateSize){
+      M.invalidateSize();
+      if(dk && dk.redraw) dk.redraw();
+    }
+  }, 320);
 }
 function cycleSheet(){
   if(!isMobile()){
