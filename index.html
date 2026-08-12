@@ -272,6 +272,7 @@ body.light #legend span[style*="dotted #9fb3c8"]{border-top-color:#4a5c6e!import
 body.light #legend span[style*="solid #e8a15c"]{border-top-color:#94530f!important}
 body.light #legend span[style*="solid #6fb7e8"]{border-top-color:#0f5c86!important}
 body.light #legend span[style*="dashed #c9d6e2"]{border-top-color:#7b8b9c!important}
+body.light #legend span[style*="dashed #e8c94a"]{border-top-color:#7d6504!important}
 
 body.light .chk-icon-label{background:rgba(255,255,255,.94);border:1px solid rgba(28,45,66,.15);font-weight:600}
 body.light #legend span[style*="#e8c94a"]{color:#7d6504!important}
@@ -338,6 +339,7 @@ body.light #themebtn{background:rgba(255,255,255,.96); box-shadow:0 4px 16px rgb
     <div class="chip" id="layer-ports" onclick="toggleLayer('ports')">&#9679; Ports &amp; Terminals</div>
     <div class="chip" id="layer-rail" onclick="toggleLayer('rail')">&#9552; Rail Corridors</div>
     <div class="chip" id="layer-pipe" onclick="toggleLayer('pipe')">&#9472; Pipelines</div>
+    <div class="chip" id="layer-uranium" onclick="toggleLayer('uranium')">&#9762; Nuclear / Class 7</div>
   </div>
 
   <div class="scroll">
@@ -370,7 +372,7 @@ body.light #themebtn{background:rgba(255,255,255,.96); box-shadow:0 4px 16px rgb
     <div class="lg-row"><span class="lg-sym"><span style="width:16px;height:0;border-top:2.5px solid #e8a15c;display:inline-block"></span></span><span>Crude oil pipeline</span></div>
     <div class="lg-row"><span class="lg-sym"><span style="width:16px;height:0;border-top:2.5px solid #6fb7e8;display:inline-block"></span></span><span>Natural gas pipeline</span></div>
     <div class="lg-row"><span class="lg-sym"><span style="width:16px;height:0;border-top:2px dashed #c9d6e2;display:inline-block"></span></span><span>Proposed &mdash; not built</span></div>
-    <div class="lg-sec">Risk colour</div>
+    <div class="lg-row"><span class="lg-sym"><span style="width:16px;height:0;border-top:2.5px dashed #e8c94a;display:inline-block"></span></span><span>Nuclear / Class 7 corridor</span></div><div class="lg-row"><span class="lg-sym"><span style="width:9px;height:9px;border-radius:50%;background:#e8c94a55;border:1.5px solid #e8c94a;display:inline-block"></span></span><span>Nuclear-capable port</span></div><div class="lg-sec">Risk colour</div>
     <div class="lg-row"><span class="lg-sym"><span style="width:9px;height:9px;border-radius:50%;background:#f0554a;display:inline-block"></span></span><span>Severe &mdash; top producer &ge;50%</span></div>
     <div class="lg-row"><span class="lg-sym"><span style="width:9px;height:9px;border-radius:50%;background:#f0a13c;display:inline-block"></span></span><span>High &ge;35% &nbsp;&middot;&nbsp; <span style="color:#e8c94a">Moderate &ge;20%</span></span></div>
     <div class="lg-row"><span class="lg-sym"><span style="width:9px;height:9px;border-radius:50%;background:#4fc98a;display:inline-block"></span></span><span>Low &mdash; diversified supply</span></div>
@@ -428,6 +430,12 @@ var CHK = {
   cape:{n:"Cape of Good Hope",lat:-34.4,lng:18.5,note:"Forced reroute point when Suez/Red Sea is unsafe — adds transit time and cost. Traffic has risen sharply as carriers avoid both the Red Sea and, more recently, Hormuz-adjacent routing risk."},
   gibraltar:{n:"Strait of Gibraltar",lat:35.9,lng:-5.6,note:"Gateway between the Atlantic and Mediterranean — most Suez-bound and Suez-origin traffic to/from Europe and the Americas passes through here. Narrow (13km at its tightest) and a NATO-adjacent chokepoint; Brookings has flagged it alongside Malacca and the Danish Straits as a waterway where toll-style leverage (as Iran has asserted at Hormuz) could in principle be replicated."},
   sunda:{n:"Sunda Strait",lat:-5.9,lng:105.9,note:"Between Java and Sumatra \u2014 the primary alternative route when Malacca is congested or disrupted, along with the deeper Lombok Strait further east. Shallower and narrower than Malacca with strong currents, so it can't absorb the largest vessels, but it's the reason a Malacca closure degrades rather than severs East Asian trade. All three Indonesian straits sit in one country's waters \u2014 a quiet concentration of routing power."},
+  bosphorus:{n:"Bosphorus / Turkish Straits",lat:41.1,lng:29.1,note:"The only sea route out of the Black Sea. Carries Russian and Kazakh crude, grain and metals to the Mediterranean. Narrow, winding, and running through the middle of Istanbul \u2014 a single-country chokepoint controlled by Turkey under the Montreux Convention."},
+  danish:{n:"Danish Straits (Skagerrak / Kattegat)",lat:57.5,lng:11.0,note:"The maritime exit from the Baltic to the North Sea \u2014 the route for Russian Baltic-port crude (Primorsk, Ust-Luga) and Baltic bulk trade. The Kiel Canal shortcuts part of it; ships too large for the canal must round Denmark here."},
+  lombok:{n:"Lombok Strait",lat:-8.7,lng:115.8,note:"Deeper Indonesian alternative to Malacca \u2014 the route large bulk carriers and VLCCs take when they cannot transit shallow Malacca. Feeds into the Makassar Strait; another passage entirely in Indonesian waters."},
+  makassar:{n:"Makassar Strait",lat:-2.0,lng:118.5,note:"Between Borneo and Sulawesi \u2014 the north-south artery through the Indonesian archipelago, linking the Lombok route to the Pacific and to Indonesia nickel-processing coast."},
+  bashi:{n:"Bashi Channel",lat:21.4,lng:121.3,note:"Between Taiwan and the Philippines \u2014 the main gap in the first island chain and the deep-water route for East Asian shipping and submarines into the Pacific. A strategic pinch point in any Taiwan scenario."},
+  miyako:{n:"Miyako Strait",lat:24.8,lng:125.3,note:"Between Okinawa and Miyako Island \u2014 the widest gap in Japan Ryukyu chain and the primary route for Chinese naval and commercial traffic reaching the open Pacific."},
   kiel:{n:"Kiel Canal",lat:54.3,lng:9.7,note:"World's busiest artificial waterway by vessel count — links the North Sea to the Baltic, letting ships skip the long, weather-exposed route around Denmark (the Skagerrak/Danish Straits). Heavily used for regional energy and bulk trade with Northern/Eastern Europe; a structural (lock capacity, depth) rather than geopolitical chokepoint under normal conditions, though Baltic shipping has drawn added security attention since 2022."}
 };
 
@@ -437,10 +445,10 @@ function R(c,lat,lng,note){return {c:c,lat:lat,lng:lng,note:note};}
 var MINERALS = [
 {id:"ree",n:"Rare Earth Elements (NdPr/Dy/Tb)",cat:"magnet",usgs:true,verified:"MCS 2026 / IEA",usRel:80,usShare:12,advShare:78,advNote:"China 69% mining + 94% magnet manufacture; Myanmar 9%",domNote:"Mountain Pass mines concentrate but US imports of separated Chinese REE jumped 169% in 2025. MP Materials magnet plant ramping; Project Vault reserve launched Feb 2026.",uses:"Permanent magnets in EV motors, wind turbines, precision-guided weapons, drives.",
  prod:[P("China",69,35,105),P("USA (Mountain Pass, concentrate only)",12,36,-115.5),P("Myanmar",9,21,96),P("Australia",6,-25,133)],
- proc:[P("China",94,35,105)],
+ proc:[P("China",94,35,105),P("Estonia (Silmet)",1,59.4,27.7),P("Malaysia (Lynas)",2,4.3,103.4)],
  reserve:[R("Greenland (Kvanefjeld)",61,-45.6,"One of the world's largest undeveloped rare earth + uranium deposits — but a 2021 Greenlandic law banning uranium mining above a low threshold has effectively blocked development, since Kvanefjeld's ore carries uranium alongside the REE. No high-profile Greenland critical-mineral project has yet reached commercial production despite over a decade of exploration interest.")],
- src:"USGS MCS 2026 (mining ~68-69%, per USGS OFR 2023 data) / IEA (94% magnet manufacturing)",note:"The export-control saga is now a rolling negotiation: April 2025 controls on Sm/Gd/Tb/Dy/Lu/Sc/Y remain in force; October 2025 controls on five more elements were suspended for one year in November under the Trump-Xi deal — leverage retained, not surrendered. US concentrate output rose 10% in 2025 (51kt), yet US imports of separated Chinese REE compounds jumped 169% — mining more while depending more. Malaysia has also banned raw REE ore exports to force domestic processing.",
- chk:["taiwan","malacca"]},
+ src:"USGS MCS 2026 (mining ~68-69%, per USGS OFR 2023 data) / IEA (94% magnet manufacturing)",note:"The export-control saga is now a rolling negotiation: April 2025 controls on Sm/Gd/Tb/Dy/Lu/Sc/Y remain in force; October 2025 controls on five more elements were suspended for one year in November under the Trump-Xi deal — leverage retained, not surrendered. US concentrate output rose 10% in 2025 (51kt), yet US imports of separated Chinese REE compounds jumped 169% — mining more while depending more. Malaysia has also banned raw REE ore exports to force domestic processing. The thin non-China midstream matters disproportionately: Estonia's Silmet plant (Sillam\u00e4e) is the only significant rare-earth separation facility in Europe, and Lynas's Malaysian plant is the largest outside China.",
+ chk:["taiwan","malacca","bashi","miyako"]},
 {id:"lithium",n:"Lithium",cat:"battery",usgs:true,verified:"MCS 2026",usRel:50,usShare:1,advShare:21,advNote:"China 21% of mining but ~65% of refining to battery grade",domNote:"Thacker Pass (NV) and other projects ramping; US refining capacity growing but small vs China.",uses:"Rechargeable batteries — EVs, grid storage, electronics.",
  prod:[P("Australia",32,-25,122),P("China",21,35,105),P("Chile",19,-24,-69),P("Zimbabwe",10,-19,29.8),P("Argentina",8,-24,-66),P("Brazil",4,-14.2,-51.9),P("Mali",3,17.5,-4)],
  proc:[P("China",65,35,105)],
@@ -815,6 +823,7 @@ function applyTheme(light){
   if (typeof drawChokepoints === 'function') drawChokepoints();
   if (typeof drawPorts === 'function') drawPorts();
   if (typeof drawCorridors === 'function') drawCorridors();
+  if (typeof drawUranium === 'function') drawUranium();
   if (typeof activeMineral !== 'undefined' && activeMineral) {
     var m = MINERALS.find(function(x){return x.id===activeMineral;});
     if (m) drawProducers(m);
@@ -1125,6 +1134,56 @@ function drawCorridors(){
 }
 if (mapAvailable) drawCorridors();
 
+// ---------- NUCLEAR / CLASS 7 LOGISTICS ----------
+// Uranium does not move through ordinary ports. It travels via certified Class 7
+// (radioactive material) handlers and, critically, over land. Tomasz Nadrowski
+// flagged these routes; they are SCHEMATIC (waypoints, not surveyed geometry).
+var URANIUM_ROUTES = [
+ {n:"Kazakhstan \u2192 Caspian \u2192 Black Sea",note:"Kazakh uranium (world #1, ~43%) routed west across the Caspian toward the Caucasus and Black Sea. Currently exposed: the Caspian/Black Sea corridor sits within reach of Ukrainian drone operations, adding real transit risk.",
+  p:[[47.1,51.9],[42.9,47.5],[41.7,44.8],[41.1,29.1]]},
+ {n:"Kazakhstan \u2192 Alashankou (China border)",note:"The eastern option: Kazakh uranium moving by rail to the Alashankou/Dostyk crossing into China. Routing nuclear fuel through a Chinese border post carries obvious strategic-dependency questions for Western buyers.",
+  p:[[47.1,68.0],[45.0,74.0],[45.2,82.6]]},
+ {n:"Kazakhstan \u2192 St Petersburg",note:"The northern option: Kazakh uranium by rail through Russia to St Petersburg for onward shipment. Runs entirely through Russian territory \u2014 the route sanctions and the Russian-enriched-uranium ban were meant to reduce reliance on.",
+  p:[[47.1,68.0],[51.2,71.4],[55.0,49.0],[57.0,40.0],[59.9,30.3]]},
+ {n:"Niger \u2192 C\u00f4te d\u2019Ivoire (Atlantic)",note:"Niger uranium overland to Atlantic ports \u2014 the route that gained importance after the 2023 coup disrupted established French supply channels. Long, cross-border, and politically fragile.",
+  p:[[17.6,7.3],[13.5,2.1],[9.5,-3.0],[5.3,-4.0]]},
+ {n:"Niger \u2192 Libya (proposed / contested)",note:"A northern overland alternative toward the Mediterranean via Libya. Contested and insecure \u2014 shown as a possible corridor, not established infrastructure.",
+  p:[[17.6,7.3],[21.0,10.0],[27.0,13.0],[32.9,13.2]]}
+];
+
+var uraniumLayer = mapAvailable ? L.layerGroup() : noopLayer;
+
+// Class 7 / nuclear-capable ports (illustrative, not exhaustive)
+var CLASS7_PORTS = [
+ {n:"Cherbourg",c:"France",note:"Handles nuclear-material shipments for the French fuel cycle (Orano).",lat:49.64,lng:-1.62},
+ {n:"Baltimore",c:"USA",note:"Historically a Class 7 / uranium-handling US port.",lat:39.25,lng:-76.55},
+ {n:"Wilmington (NC)",c:"USA",note:"Near GE-Hitachi / Global Nuclear Fuel facilities.",lat:34.22,lng:-77.95},
+ {n:"St Petersburg",c:"Russia",note:"Primary Russian outlet for nuclear-fuel-cycle exports, including Kazakh transit cargo.",lat:59.9,lng:30.3},
+ {n:"Vancouver",c:"Canada",note:"Outlet for Canadian (Cameco) uranium concentrate.",lat:49.29,lng:-123.11},
+ {n:"Darwin / Adelaide",c:"Australia",note:"Australian uranium concentrate export points.",lat:-12.46,lng:130.84},
+ {n:"Walvis Bay",c:"Namibia",note:"Export outlet for Namibian uranium (R\u00f6ssing, Husab).",lat:-22.95,lng:14.5},
+ {n:"Shanghai (certified terminals)",c:"China",note:"Chinese nuclear-fuel import handling.",lat:31.23,lng:121.47}
+];
+
+function drawUranium(){
+  if(!mapAvailable) return;
+  uraniumLayer.clearLayers();
+  var col = TC('#e8c94a');
+  URANIUM_ROUTES.forEach(function(r){
+    var line = L.polyline(r.p, {color:col, weight:2.5, opacity:.8, dashArray:'6,4', lineCap:'round'}).addTo(uraniumLayer);
+    line.bindPopup('<div class="pp-t">'+r.n+'</div><div class="pp-s">nuclear / Class 7 corridor</div>'+
+      '<div style="font-size:11px;color:'+TC('#b9c6d3')+';max-width:250px">'+r.note+'</div>'+
+      '<div style="font-size:9.5px;color:'+TC('#c9d6e2')+';margin-top:5px;font-style:italic">Schematic route \u2014 waypoints, not surveyed geometry.</div>');
+  });
+  CLASS7_PORTS.forEach(function(p){
+    var pc = TC('#e8c94a');
+    var ic = L.divIcon({className:'',html:'<div style="width:10px;height:10px;background:'+pc+'55;border:1.5px solid '+pc+';border-radius:50%;box-shadow:0 0 0 2px '+pc+'22"></div>',iconSize:[10,10],iconAnchor:[5,5]});
+    L.marker([p.lat,p.lng],{icon:ic}).addTo(uraniumLayer).bindPopup('<div class="pp-t">'+p.n+'</div><div class="pp-s">'+p.c+' &middot; nuclear-capable port</div><div style="font-size:11px;color:'+TC('#b9c6d3')+';max-width:220px;margin-top:3px">'+p.note+'</div>');
+  });
+}
+if (mapAvailable) drawUranium();
+
+
 
 
 var currentMode = 'journo';
@@ -1190,6 +1249,10 @@ function toggleLayer(which){
     var el4 = document.getElementById('layer-pipe');
     if(M.hasLayer(pipeLayer)){ M.removeLayer(pipeLayer); el4.classList.remove('on'); }
     else { pipeLayer.addTo(M); el4.classList.add('on'); }
+  } else if(which==='uranium'){
+    var el5 = document.getElementById('layer-uranium');
+    if(M.hasLayer(uraniumLayer)){ M.removeLayer(uraniumLayer); el5.classList.remove('on'); }
+    else { uraniumLayer.addTo(M); el5.classList.add('on'); }
   }
 }
 
