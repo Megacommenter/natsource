@@ -821,9 +821,9 @@ function applyTheme(light){
     addTiles(light ? TILE_LIGHT : TILE_DARK);
   }
   if (typeof drawChokepoints === 'function') drawChokepoints();
-  if (typeof drawPorts === 'function') drawPorts();
-  if (typeof drawCorridors === 'function') drawCorridors();
-  if (typeof drawUranium === 'function') drawUranium();
+  if (typeof drawPorts === 'function' && M.hasLayer(portLayer)) drawPorts();
+  if (typeof drawCorridors === 'function' && (M.hasLayer(railLayer)||M.hasLayer(pipeLayer))) drawCorridors();
+  if (typeof drawUranium === 'function' && M.hasLayer(uraniumLayer)) drawUranium();
   if (typeof activeMineral !== 'undefined' && activeMineral) {
     var m = MINERALS.find(function(x){return x.id===activeMineral;});
     if (m) drawProducers(m);
@@ -924,10 +924,20 @@ function drawChokepoints(){
       : (status==='active' ? '#ffb4ac' : status==='elevated' ? '#f5cf9b' : '#c9d6e2');
     var lblBorder = status==='active' ? '1px solid rgba(200,52,42,.45)' : status==='elevated' ? '1px solid rgba(181,111,16,.4)' : '';
     var lblStyle = 'color:'+lblCol+';font-weight:'+(status==='normal'?'500':'700')+';'+(lblBorder?'border:'+lblBorder+';':'');
-    L.marker([c.lat,c.lng],{icon:L.divIcon({className:'',html:'<div class="chk-icon-label" style="'+lblStyle+'">'+c.n+'</div>',iconSize:[0,0],iconAnchor:[-10,0]})}).addTo(chkLayer);
+    if ((M.getZoom ? M.getZoom() : 3) >= 4) {
+      L.marker([c.lat,c.lng],{icon:L.divIcon({className:'',html:'<div class="chk-icon-label" style="'+lblStyle+'">'+c.n+'</div>',iconSize:[0,0],iconAnchor:[-10,0]})}).addTo(chkLayer);
+    }
   });
 }
 if (mapAvailable) drawChokepoints();
+if (mapAvailable) {
+  var _chkZoomT = null;
+  M.on('zoomend', function(){
+    if (!M.hasLayer(chkLayer)) return;
+    clearTimeout(_chkZoomT);
+    _chkZoomT = setTimeout(drawChokepoints, 120);
+  });
+}
 
 // ---------- GLOBAL PORTS (top container/bulk ports by throughput) ----------
 var PORTS = [
@@ -1021,7 +1031,10 @@ function drawPorts(){
   if(!mapAvailable) return;
   portLayer.clearLayers();
   var maxT = 51506;
-  PORTS.forEach(function(p, i){
+  var z = M.getZoom ? M.getZoom() : 3;
+  // At world zoom, only show the top 12 container ports; reveal the rest as you zoom in.
+  var portCap = z <= 3 ? 12 : (z === 4 ? 30 : PORTS.length);
+  PORTS.slice(0, portCap).forEach(function(p, i){
     var pc = TC('#e8a15c');
     var r = 3 + Math.sqrt(p.t / maxT) * 7;
     var circle = L.circleMarker([p.lat,p.lng],{radius:r,color:pc,weight:1.5,fillColor:pc,fillOpacity:.45}).addTo(portLayer);
@@ -1031,13 +1044,20 @@ function drawPorts(){
   });
   BULK_PORTS.forEach(function(p){
     var bc = TC('#4fc98a');
-    var ic = L.divIcon({className:'',html:'<div style="width:9px;height:9px;background:'+bc+'55;border:1.5px solid '+bc+';"></div>',iconSize:[9,9],iconAnchor:[4,4]});
-    L.marker([p.lat,p.lng],{icon:ic}).addTo(portLayer).bindPopup('<div class="pp-t">'+p.n+'</div><div class="pp-s">'+p.c+' &middot; bulk terminal</div>'+
+    L.circleMarker([p.lat,p.lng],{radius:5,color:bc,weight:1.5,fillColor:bc,fillOpacity:.35}).addTo(portLayer).bindPopup('<div class="pp-t">'+p.n+'</div><div class="pp-s">'+p.c+' &middot; bulk terminal</div>'+
       '<div class="pp-r"><span class="pp-l">Handles</span><span class="pp-v">'+p.k+'</span></div>'+
       '<div style="font-size:11px;color:'+TC('#b9c6d3')+';max-width:230px;margin-top:4px">'+p.note+'</div>');
   });
 }
-if (mapAvailable) drawPorts();
+var _portsBuilt = false;
+if (mapAvailable) {
+  var _portZoomT = null;
+  M.on('zoomend', function(){
+    if (!M.hasLayer(portLayer)) return;   // only redraw if the layer is actually on
+    clearTimeout(_portZoomT);
+    _portZoomT = setTimeout(drawPorts, 120);
+  });
+}
 
 // ---------- STRATEGIC LAND CORRIDORS ----------
 // IMPORTANT: these are SCHEMATIC routes drawn through major waypoints, not surveyed
@@ -1132,7 +1152,7 @@ function drawCorridors(){
       '<div style="font-size:9.5px;color:'+TC('#c9d6e2')+';margin-top:5px;font-style:italic">Schematic route \u2014 drawn through major waypoints, not surveyed geometry.</div>');
   });
 }
-if (mapAvailable) drawCorridors();
+// corridors drawn lazily on first toggle
 
 // ---------- NUCLEAR / CLASS 7 LOGISTICS ----------
 // Uranium does not move through ordinary ports. It travels via certified Class 7
@@ -1177,11 +1197,10 @@ function drawUranium(){
   });
   CLASS7_PORTS.forEach(function(p){
     var pc = TC('#e8c94a');
-    var ic = L.divIcon({className:'',html:'<div style="width:10px;height:10px;background:'+pc+'55;border:1.5px solid '+pc+';border-radius:50%;box-shadow:0 0 0 2px '+pc+'22"></div>',iconSize:[10,10],iconAnchor:[5,5]});
-    L.marker([p.lat,p.lng],{icon:ic}).addTo(uraniumLayer).bindPopup('<div class="pp-t">'+p.n+'</div><div class="pp-s">'+p.c+' &middot; nuclear-capable port</div><div style="font-size:11px;color:'+TC('#b9c6d3')+';max-width:220px;margin-top:3px">'+p.note+'</div>');
+    L.circleMarker([p.lat,p.lng],{radius:5.5,color:pc,weight:1.5,fillColor:pc,fillOpacity:.3}).addTo(uraniumLayer).bindPopup('<div class="pp-t">'+p.n+'</div><div class="pp-s">'+p.c+' &middot; nuclear-capable port</div><div style="font-size:11px;color:'+TC('#b9c6d3')+';max-width:220px;margin-top:3px">'+p.note+'</div>');
   });
 }
-if (mapAvailable) drawUranium();
+// uranium drawn lazily on first toggle
 
 
 
@@ -1240,19 +1259,19 @@ function toggleLayer(which){
   } else if(which==='ports'){
     var el2 = document.getElementById('layer-ports');
     if(M.hasLayer(portLayer)){ M.removeLayer(portLayer); el2.classList.remove('on'); }
-    else { portLayer.addTo(M); el2.classList.add('on'); }
+    else { drawPorts(); portLayer.addTo(M); el2.classList.add('on'); }
   } else if(which==='rail'){
     var el3 = document.getElementById('layer-rail');
     if(M.hasLayer(railLayer)){ M.removeLayer(railLayer); el3.classList.remove('on'); }
-    else { railLayer.addTo(M); el3.classList.add('on'); }
+    else { if(!railLayer.getLayers().length) drawCorridors(); railLayer.addTo(M); el3.classList.add('on'); }
   } else if(which==='pipe'){
     var el4 = document.getElementById('layer-pipe');
     if(M.hasLayer(pipeLayer)){ M.removeLayer(pipeLayer); el4.classList.remove('on'); }
-    else { pipeLayer.addTo(M); el4.classList.add('on'); }
+    else { if(!pipeLayer.getLayers().length) drawCorridors(); pipeLayer.addTo(M); el4.classList.add('on'); }
   } else if(which==='uranium'){
     var el5 = document.getElementById('layer-uranium');
     if(M.hasLayer(uraniumLayer)){ M.removeLayer(uraniumLayer); el5.classList.remove('on'); }
-    else { uraniumLayer.addTo(M); el5.classList.add('on'); }
+    else { if(!uraniumLayer.getLayers().length) drawUranium(); uraniumLayer.addTo(M); el5.classList.add('on'); }
   }
 }
 
