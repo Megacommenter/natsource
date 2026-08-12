@@ -160,6 +160,17 @@ body.light .leaflet-tile-pane{filter:none}
   #sp .scroll{ flex:1 1 auto; min-height:0; }
 }
 
+
+/* ===== DETAIL MODE: mineral/country detail takes over the panel ===== */
+#sp.detail-open #modebar2,
+#sp.detail-open .sbox,
+#sp.detail-open #catchips,
+#sp.detail-open #layerchips,
+#sp.detail-open #listtitle,
+#sp.detail-open #mlist{ display:none !important; }
+#sp.detail-open #dp{ display:block; }
+#sp.detail-open #viewbar{ margin-bottom:0; }
+
 /* ===== MOBILE BOTTOM SHEET ===== */
 @media (max-width:768px){
   #sp{
@@ -1526,14 +1537,8 @@ function selectMineral(id){
   var m = MINERALS.find(function(x){return x.id===id;});
   renderDetail(m);
   drawProducers(m);
-  // Hide the browsing list + filters; show the detail as a full-height panel.
-  var lt = document.getElementById('listtitle'); if(lt) lt.style.display='none';
-  var ml = document.getElementById('mlist'); if(ml) ml.style.display='none';
-  var chipsWrap = document.getElementById('catchips'); if(chipsWrap) chipsWrap.parentElement.style.display='none';
-  var lyr = document.getElementById('layerchips'); if(lyr) lyr.style.display='none';
-  var sb = document.querySelector('#sp .sbox'); if(sb) sb.style.display='none';
-  var mb2 = document.getElementById('modebar2'); if(mb2) mb2.style.display='none';
-  // scroll the panel back to the top so the mineral header is visible immediately
+  // Enter detail mode: a single class hides the browsing chrome via CSS.
+  document.getElementById('sp').classList.add('detail-open');
   var sc = document.querySelector('#sp .scroll'); if(sc) sc.scrollTop = 0;
   // on mobile make sure the sheet is at least half-open so the panel is readable
   if(window.innerWidth < 769 && typeof applySheet === 'function' && sheetState === 'peek'){ applySheet('half'); }
@@ -1640,13 +1645,7 @@ function renderDetail(m){
 function closeDetail(){
   document.getElementById('dp').classList.remove('active');
   activeMineral=null; activeCountry=null; prodLayer.clearLayers();
-  // Restore the browsing list + filters.
-  var lt = document.getElementById('listtitle'); if(lt) lt.style.display='';
-  var ml = document.getElementById('mlist'); if(ml) ml.style.display='';
-  var chipsWrap = document.getElementById('catchips'); if(chipsWrap) chipsWrap.parentElement.style.display='';
-  var lyr = document.getElementById('layerchips'); if(lyr) lyr.style.display='';
-  var sb = document.querySelector('#sp .sbox'); if(sb) sb.style.display='';
-  var mb2 = document.getElementById('modebar2'); if(mb2) mb2.style.display='';
+  document.getElementById('sp').classList.remove('detail-open');
   var sc = document.querySelector('#sp .scroll'); if(sc) sc.scrollTop = 0;
   var q = document.getElementById('si').value;
   if(currentView==='minerals') renderList(q);
