@@ -168,7 +168,8 @@ body.light .leaflet-tile-pane{filter:none}
 #sp.detail-open #layerchips,
 #sp.detail-open #listtitle,
 #sp.detail-open #mlist{ display:none !important; }
-#sp.detail-open #dp{ display:block; }
+#sp.detail-open #dp{ display:block !important; }
+#sp.detail-open .scroll{ display:flex !important; flex-direction:column; }
 #sp.detail-open #viewbar{ margin-bottom:0; }
 
 /* ===== MOBILE BOTTOM SHEET ===== */
@@ -839,13 +840,13 @@ function TC(hex){
 }
 
 // ---------- THEME ----------
-var TILE_DARK  = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
-var TILE_DARK_NOLABELS = 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png';
-var TILE_LIGHT = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
-var TILE_LIGHT_NOLABELS = 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png';
+var TILE_DARK  = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}';
+var TILE_DARK_NOLABELS = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}';
+var TILE_LIGHT = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}';
+var TILE_LIGHT_NOLABELS = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}';
 // English-only place labels as a separate overlay pane (avoids the multi-language pile-up)
-var LABELS_LIGHT = 'https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png';
-var LABELS_DARK  = 'https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png';
+var LABELS_LIGHT = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}';
+var LABELS_DARK  = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}';
 var labelLayer = null;
 var isLight = true;   // light is the default; dark is opt-in
 try { if (localStorage.getItem('cp-theme') === 'dark') isLight = false; } catch(e){}
@@ -911,12 +912,12 @@ var dk = null, usingFallbackTiles = false;
 function addTiles(url, attribution){
   if (dk) { M.removeLayer(dk); }
   if (labelLayer) { M.removeLayer(labelLayer); labelLayer = null; }
-  dk = L.tileLayer(url, {maxZoom:19, bounds:[[-85,-180],[85,180]], keepBuffer:6, updateWhenIdle:false, updateWhenZooming:false, crossOrigin:true});
+  dk = L.tileLayer(url, {maxZoom:16, bounds:[[-85,-180],[85,180]], keepBuffer:6, updateWhenIdle:false, updateWhenZooming:false, crossOrigin:true, attribution:''});
   dk.addTo(M);
   // English-only label overlay on top (skip if we fell back to OSM)
   if (!usingFallbackTiles) {
     var labelUrl = (typeof isLight!=='undefined' && isLight) ? LABELS_LIGHT : LABELS_DARK;
-    labelLayer = L.tileLayer(labelUrl, {maxZoom:19, bounds:[[-85,-180],[85,180]], keepBuffer:6, pane:'labels', opacity:1, crossOrigin:true});
+    labelLayer = L.tileLayer(labelUrl, {maxZoom:16, bounds:[[-85,-180],[85,180]], keepBuffer:6, pane:'labels', opacity:1, crossOrigin:true, attribution:''});
     labelLayer.addTo(M);
   }
   var fails = 0;
