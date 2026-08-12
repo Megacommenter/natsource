@@ -1517,8 +1517,11 @@ function drawProducers(m){
   });
   if(m.proc){
     m.proc.forEach(function(p){
-      var ic = L.divIcon({className:'',html:'<div style="width:9px;height:9px;border:1.5px dashed '+TC('#e8a15c')+';border-radius:50%"></div>',iconSize:[9,9],iconAnchor:[4,4]});
-      L.marker([p.lat,p.lng],{icon:ic}).addTo(prodLayer).bindPopup('<div class="pp-t">'+p.c+'</div><div class="pp-s">Midstream processing — '+m.n+'</div><div class="pp-r"><span class="pp-l">Processing share</span><span class="pp-v">'+p.p+'%</span></div>');
+      var pcol = TC('#e05c9e');  // magenta ring = processing/refining, distinct from producer circles
+      var ic = L.divIcon({className:'',html:'<div style="width:16px;height:16px;border:2.5px dashed '+pcol+';border-radius:50%;background:'+pcol+'22;box-shadow:0 0 0 1px rgba(0,0,0,.15)"></div>',iconSize:[16,16],iconAnchor:[8,8]});
+      L.marker([p.lat,p.lng],{icon:ic}).addTo(prodLayer).bindPopup('<div class="pp-t">'+p.c+'</div><div class="pp-s">Midstream processing / refining — '+m.n+'</div><div class="pp-r"><span class="pp-l">Processing share</span><span class="pp-v">'+p.p+'%</span></div>');
+      // small always-on label so smaller nodes (Estonia, Malaysia) are findable
+      L.marker([p.lat,p.lng],{icon:L.divIcon({className:'',html:'<div style="font-family:var(--mono);font-size:9px;color:'+pcol+';background:rgba(255,255,255,.82);padding:0 3px;border-radius:3px;white-space:nowrap;font-weight:700">\u25CC '+p.c.replace(/ \(.*/,'')+'</div>',iconSize:[0,0],iconAnchor:[-11,4]})}).addTo(prodLayer);
     });
   }
   if(m.reserve){
@@ -1527,7 +1530,15 @@ function drawProducers(m){
       circle.bindPopup('<div class="pp-t">'+rv.c+'</div><div class="pp-s">Undeveloped reserve — not yet in market supply</div><div style="font-size:11px;color:'+TC('#b9c6d3')+';max-width:220px">'+rv.note+'</div>');
     });
   }
-  if(m.prod.length) goTo(m.prod[0].lat, m.prod[0].lng, 3);
+  if(m.prod.length){
+    if(m.proc && m.proc.length && mapAvailable && M.fitBounds){
+      var pts = m.prod.map(function(p){return [p.lat,p.lng];}).concat(m.proc.map(function(p){return [p.lat,p.lng];}));
+      try { M.fitBounds(pts, {padding:[60,60], maxZoom:4, animate: window.innerWidth>=769}); }
+      catch(e){ goTo(m.prod[0].lat, m.prod[0].lng, 3); }
+    } else {
+      goTo(m.prod[0].lat, m.prod[0].lng, 3);
+    }
+  }
 }
 
 function renderDetail(m){
