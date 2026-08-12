@@ -320,6 +320,41 @@ body.light #legend span[style*="solid #f0554a"]{border-color:#b82d23!important}
 body.light #legend span[style*="solid #f0a13c"]{border-color:#9c5f0c!important}
 body.light .tki{color:#4d5f72}
 
+
+#databtn{
+  position:fixed; right:12px; bottom:12px; z-index:1200;
+  display:flex; align-items:center; gap:5px;
+  padding:8px 12px; border-radius:9px;
+  background:rgba(13,21,32,.94); border:1px solid var(--brand);
+  color:var(--brand); cursor:pointer;
+  font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:.4px;
+  box-shadow:0 4px 16px rgba(0,0,0,.4);
+}
+body.light #databtn{ background:rgba(255,255,255,.96); box-shadow:0 4px 16px rgba(20,40,60,.16); }
+#databtn:hover{ background:var(--brand); color:#fff; }
+#datapop{
+  position:fixed; right:12px; bottom:54px; z-index:1201;
+  width:min(340px,90vw); display:none;
+  background:var(--panel); border:1px solid var(--line); border-radius:12px;
+  box-shadow:0 12px 40px rgba(0,0,0,.5); overflow:hidden;
+}
+body.light #datapop{ box-shadow:0 12px 40px rgba(20,40,60,.22); }
+#datapop.open{ display:block; }
+.dp-pop-h{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:11px 14px; font-family:var(--mono); font-size:11px; font-weight:700;
+  letter-spacing:.5px; text-transform:uppercase; color:var(--brand);
+  border-bottom:1px solid var(--line);
+}
+.dp-pop-b{ padding:12px 14px; }
+.dp-pop-b p{ margin:0 0 9px; font-size:12px; line-height:1.5; color:var(--ink-dim); }
+.dp-pop-b p:last-child{ margin-bottom:0; }
+.dp-dot{ display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px; vertical-align:middle; }
+@media (max-width:768px){
+  #databtn{ right:8px; bottom:8px; font-size:10px; padding:7px 10px; }
+  #datapop{ right:8px; bottom:48px; }
+}
+
 /* theme toggle button */
 #themebtn{
   position:fixed; top:12px; right:12px; z-index:1101;
@@ -347,7 +382,7 @@ body.light #themebtn{background:rgba(255,255,255,.96); box-shadow:0 4px 16px rgb
   <div class="hdr">
     <div class="brand">CHOKEPOINT<span>_</span></div>
     <div class="tag">Critical Minerals &amp; Supply Risk Monitor</div>
-    <div class="disclaimer">Verification pass completed Jul 2026 against USGS MCS 2026 / OFR 2026 tables (Feb 2026, 2025 data). Green badge = table-verified (18 of 27); "(partial)" = key figures verified, splits approximate; gray = spot-checked only (chromium, uranium, met coal, oil, gas, gold). Prototype — re-verify before publication.</div>
+
     <button class="collapse-btn" onclick="document.getElementById('sp').classList.add('hide');var t=document.getElementById('tb');t.style.display='flex';t.textContent='\u2630';">&#8249;</button>
   </div>
 
@@ -385,6 +420,19 @@ body.light #themebtn{background:rgba(255,255,255,.96); box-shadow:0 4px 16px rgb
 </div>
 
 <button id="tb">&#9776;</button>
+
+
+<button id="databtn" onclick="document.getElementById('datapop').classList.toggle('open')" title="Data sources & verification status">&#9432; Latest data</button>
+<div id="datapop">
+  <div class="dp-pop-h">Data &amp; verification status <span onclick="document.getElementById('datapop').classList.remove('open')" style="cursor:pointer;color:var(--ink-faint);font-size:14px">&#10005;</span></div>
+  <div class="dp-pop-b">
+    <p>Verification pass completed Jul 2026 against <b>USGS Mineral Commodity Summaries 2026 / OFR 2026</b> tables (Feb 2026, using 2025 production data).</p>
+    <p><span class="dp-dot" style="background:var(--low)"></span><b>Green badge</b> — table-verified (18 of 27 commodities).</p>
+    <p><span class="dp-dot" style="background:var(--mod)"></span><b>"(partial)"</b> — key figures verified, country splits approximate.</p>
+    <p><span class="dp-dot" style="background:var(--ink-faint)"></span><b>Gray</b> — spot-checked only: chromium, uranium, met coal, oil, gas, gold.</p>
+    <p style="color:var(--brand);font-weight:600">Prototype — re-verify before publication.</p>
+  </div>
+</div>
 
 <button id="themebtn" onclick="toggleTheme()" title="Switch light / dark">◐</button>
 <div id="legend">
