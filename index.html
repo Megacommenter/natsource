@@ -162,7 +162,7 @@ body.light .leaflet-tile-pane{filter:none}
     transition:height .28s cubic-bezier(.4,0,.2,1), transform .28s ease;
     transform:none !important;
   }
-  #sp.hide{ transform:none !important; height:74px; }
+  #sp.hide{ transform:none !important; height:64px; }
   #sp.full{ height:94vh; height:94dvh; }
   #sp .scroll{ -webkit-overflow-scrolling:touch; overscroll-behavior:contain; touch-action:pan-y; }
   #sp{ touch-action:pan-y; }
@@ -1624,10 +1624,10 @@ function applySheet(st){
   spEl.classList.remove('hide','full');
   if(st === 'peek') spEl.classList.add('hide');
   if(st === 'full') spEl.classList.add('full');
-  if(gripLbl) gripLbl.textContent = st==='peek' ? 'Tap to expand' : st==='half' ? 'Tap for full list' : 'Tap to shrink';
+  if(gripLbl) gripLbl.textContent = st==='peek' ? 'Tap to browse minerals \u2191' : st==='half' ? 'Tap for full list \u2191' : 'Tap to shrink \u2193';
   var mapEl = document.getElementById('map');
   if(mapEl && isMobile()){
-    mapEl.style.bottom = st==='peek' ? '74px' : st==='full' ? '6vh' : '38vh';
+    mapEl.style.bottom = st==='peek' ? '64px' : st==='full' ? '6vh' : '38vh';
   } else if(mapEl){
     mapEl.style.bottom = '0';
   }
@@ -1661,7 +1661,7 @@ function cycleSheet(){
     startY = null;
   }, {passive:true});
 })();
-if(isMobile()){ applySheet('half'); }
+if(isMobile()){ applySheet('peek'); }
 // Leaflet mobile sizing safety: recalc after load and on rotation
 if (mapAvailable) {
   setTimeout(function(){ M.invalidateSize(); }, 400);
