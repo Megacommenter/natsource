@@ -321,6 +321,22 @@ body.light #legend span[style*="solid #f0a13c"]{border-color:#9c5f0c!important}
 body.light .tki{color:#4d5f72}
 
 
+
+#kofibtn{
+  position:fixed; right:12px; bottom:52px; z-index:1200;
+  display:flex; align-items:center; gap:5px;
+  padding:8px 12px; border-radius:9px;
+  background:rgba(13,21,32,.94); border:1px solid var(--line);
+  color:var(--ink-dim); cursor:pointer; text-decoration:none;
+  font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:.4px;
+  box-shadow:0 4px 16px rgba(0,0,0,.4);
+}
+#kofibtn:hover{ border-color:#e05c9e; color:#e05c9e; }
+body.light #kofibtn{ background:rgba(255,255,255,.96); box-shadow:0 4px 16px rgba(20,40,60,.16); }
+@media (max-width:768px){
+  #kofibtn{ right:8px; bottom:46px; font-size:10px; padding:7px 10px; }
+}
+
 #databtn{
   position:fixed; right:12px; bottom:12px; z-index:1200;
   display:flex; align-items:center; gap:5px;
@@ -330,10 +346,26 @@ body.light .tki{color:#4d5f72}
   font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:.4px;
   box-shadow:0 4px 16px rgba(0,0,0,.4);
 }
-body.light #databtn{ background:rgba(255,255,255,.96); box-shadow:0 4px 16px rgba(20,40,60,.16); }
+body.light 
+#kofibtn{
+  position:fixed; right:12px; bottom:52px; z-index:1200;
+  display:flex; align-items:center; gap:5px;
+  padding:8px 12px; border-radius:9px;
+  background:rgba(13,21,32,.94); border:1px solid var(--line);
+  color:var(--ink-dim); cursor:pointer; text-decoration:none;
+  font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:.4px;
+  box-shadow:0 4px 16px rgba(0,0,0,.4);
+}
+#kofibtn:hover{ border-color:#e05c9e; color:#e05c9e; }
+body.light #kofibtn{ background:rgba(255,255,255,.96); box-shadow:0 4px 16px rgba(20,40,60,.16); }
+@media (max-width:768px){
+  #kofibtn{ right:8px; bottom:46px; font-size:10px; padding:7px 10px; }
+}
+
+#databtn{ background:rgba(255,255,255,.96); box-shadow:0 4px 16px rgba(20,40,60,.16); }
 #databtn:hover{ background:var(--brand); color:#fff; }
 #datapop{
-  position:fixed; right:12px; bottom:54px; z-index:1201;
+  position:fixed; right:12px; bottom:92px; z-index:1201;
   width:min(340px,90vw); display:none;
   background:var(--panel); border:1px solid var(--line); border-radius:12px;
   box-shadow:0 12px 40px rgba(0,0,0,.5); overflow:hidden;
@@ -351,7 +383,23 @@ body.light #datapop{ box-shadow:0 12px 40px rgba(20,40,60,.22); }
 .dp-pop-b p:last-child{ margin-bottom:0; }
 .dp-dot{ display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px; vertical-align:middle; }
 @media (max-width:768px){
-  #databtn{ right:8px; bottom:8px; font-size:10px; padding:7px 10px; }
+  
+#kofibtn{
+  position:fixed; right:12px; bottom:52px; z-index:1200;
+  display:flex; align-items:center; gap:5px;
+  padding:8px 12px; border-radius:9px;
+  background:rgba(13,21,32,.94); border:1px solid var(--line);
+  color:var(--ink-dim); cursor:pointer; text-decoration:none;
+  font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:.4px;
+  box-shadow:0 4px 16px rgba(0,0,0,.4);
+}
+#kofibtn:hover{ border-color:#e05c9e; color:#e05c9e; }
+body.light #kofibtn{ background:rgba(255,255,255,.96); box-shadow:0 4px 16px rgba(20,40,60,.16); }
+@media (max-width:768px){
+  #kofibtn{ right:8px; bottom:46px; font-size:10px; padding:7px 10px; }
+}
+
+#databtn{ right:8px; bottom:8px; font-size:10px; padding:7px 10px; }
   #datapop{ right:8px; bottom:48px; }
 }
 
@@ -422,6 +470,7 @@ body.light #themebtn{background:rgba(255,255,255,.96); box-shadow:0 4px 16px rgb
 <button id="tb">&#9776;</button>
 
 
+<a id="kofibtn" href="https://ko-fi.com/megacommenter" target="_blank" rel="noopener" title="Support — helps cover hosting &amp; keeps this free">&#9829; Support</a>
 <button id="databtn" onclick="document.getElementById('datapop').classList.toggle('open')" title="Data sources & verification status">&#9432; Latest data</button>
 <div id="datapop">
   <div class="dp-pop-h">Data &amp; verification status <span onclick="document.getElementById('datapop').classList.remove('open')" style="cursor:pointer;color:var(--ink-faint);font-size:14px">&#10005;</span></div>
@@ -1656,10 +1705,20 @@ function renderDetail(m){
     '<div class="sectiontitle" style="padding-left:0">Off-market resources &amp; idle capacity</div>'+
     '<div style="font-size:10px;color:var(--ink-faint);line-height:1.45;margin:-4px 0 8px;font-style:italic">Known deposits or built capacity not currently reaching the market. Per standard classification, most are <b>resources</b> (not yet proven economic or legally mineable) rather than <b>reserves</b>; a few are permitted reserves idled by price or politics.</div>';
   if(m.reserve && m.reserve.length){
+    reserveHtml += '<div style="font-size:10px;color:var(--ink-faint);line-height:1.5;margin-bottom:8px;padding:8px 9px;background:rgba(232,161,60,.05);border-radius:6px">'+
+      '<b style="color:var(--ink-dim)">Why development status matters:</b> A <b>brownfield</b> site (previously or currently mined) is far easier to permit and expand \u2014 the community already accepts mining, the infrastructure exists, and restart can take months. A <b>greenfield</b> site (never mined) must earn its <i>social license to operate</i> from scratch: community consent, environmental review and infrastructure can take a decade or stall entirely, regardless of how good the geology is. This is often the real reason a large resource stays off the market.</div>';
     reserveHtml += m.reserve.map(function(r){
+        var note = r.note;
+        var pill = '';
+        var low = note.toLowerCase();
+        if(low.indexOf('brownfield') > -1 && low.indexOf('brownfield') < 40){
+          pill = '<span style="display:inline-block;font-size:8.5px;font-family:var(--mono);font-weight:700;letter-spacing:.5px;padding:2px 6px;border-radius:4px;background:rgba(79,201,138,.15);color:var(--low);margin-left:6px;vertical-align:middle">BROWNFIELD \u00b7 EASIER</span>';
+        } else if(low.indexOf('greenfield') > -1 && low.indexOf('greenfield') < 40){
+          pill = '<span style="display:inline-block;font-size:8.5px;font-family:var(--mono);font-weight:700;letter-spacing:.5px;padding:2px 6px;border-radius:4px;background:rgba(240,161,60,.15);color:var(--high);margin-left:6px;vertical-align:middle">GREENFIELD \u00b7 HARDER</span>';
+        }
         return '<div style="margin-bottom:8px;padding:8px 9px;background:rgba(111,183,232,.05);border-left:2px dashed #6fb7e8;border-radius:0 4px 4px 0">'+
-          '<div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:3px">&#9678; '+r.c+'</div>'+
-          '<div style="font-size:11px;color:var(--ink-dim);line-height:1.5">'+r.note+'</div></div>';
+          '<div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:3px">&#9678; '+r.c+pill+'</div>'+
+          '<div style="font-size:11px;color:var(--ink-dim);line-height:1.5">'+note+'</div></div>';
       }).join('');
   } else {
     reserveHtml += '<div style="padding:8px 9px;font-size:11px;color:var(--ink-faint);font-style:italic">No large disclosed undeveloped reserve compiled for this mineral yet — often because it\'s recovered as a byproduct of other mining rather than from a distinct ore body. Not the same as saying none exists.</div>';
